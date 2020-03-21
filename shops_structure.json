@@ -1,0 +1,123 @@
+{
+  "mrcleaner":
+  {
+    "all_products_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "data-type": "product-list"
+      }
+    },
+
+    "products_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "data-type": "product",
+        "class": "product-box gallery clearfix"
+      }
+    },
+
+    "product_name":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "data-type": "product-url"
+      }
+    },
+
+    "product_price_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "product-price-container"
+      }
+    },
+
+    "product_price":
+    {
+      "type": "span",
+      "attrs":
+      {
+        "class": "price"
+      }
+    },
+
+    "product_discount_price":
+    {
+      "type": "span",
+      "attrs":
+      {
+        "class": "discount-price"
+      }
+    },
+
+    "product_url":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "data-type": "product-url"
+      }
+    }
+  },
+  "detailer.pl":
+  {
+    "all_products_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "products row products-grid"
+      }
+    },
+    "products_container":
+    {
+      "type": "article",
+      "attrs":
+      {
+        "class": "product-miniature product-miniature-default product-miniature-grid product-miniature-layout-1 js-product-miniature"
+      }
+    },
+    "product_name":
+    {
+      "type": "h3",
+      "attrs":
+      {
+        "class": "h3 product-title"
+      },
+      "children_type": "a",
+      "children_attrs":{}
+    },
+    "product_price_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "product-price-and-shipping"
+      }
+    },
+    "product_price":
+    {
+      "type": "span",
+      "attrs":
+      {
+        "class": "product-price"
+      }
+    },
+    "product_url":
+    {
+      "type": "h3",
+      "attrs":
+      {
+        "class": "h3 product-title"
+      },
+      "children_type": "a",
+      "children_attrs": {}
+    }
+  }
+}

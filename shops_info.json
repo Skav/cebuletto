@@ -1,0 +1,12 @@
+{
+  "mrcleaner":
+  {
+    "url": "https://www.mrcleaner.pl/s?q=",
+    "separator": "+"
+  },
+  "detailer.pl":
+  {
+    "url": "https://www.detailer.pl/sklep/pl/wyszukiwanie?s=",
+    "separator": "+"
+  }
+}
