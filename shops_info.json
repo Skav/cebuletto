@@ -8,5 +8,10 @@
   {
     "url": "https://www.detailer.pl/sklep/pl/wyszukiwanie?s=",
     "separator": "+"
+  },
+  "automotivecare":
+  {
+    "url": "https://automotivecare.pl/pl/searchquery/",
+    "separator": "+"
   }
 }

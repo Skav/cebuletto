@@ -47,6 +47,15 @@
       }
     },
 
+    "second_regular_price":
+    {
+      "type": "span",
+      "attrs":
+      {
+        "class": "base-price"
+      }
+    },
+
     "product_discount_price":
     {
       "type": "span",
@@ -118,6 +127,64 @@
       },
       "children_type": "a",
       "children_attrs": {}
+    }
+  },
+  "automotivecare":
+  {
+    "all_products_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "products viewphot s-row"
+      }
+    },
+    "products_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "product-inner-wrap"
+      }
+    },
+    "product_name":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "class": "prodname f-row"
+      },
+      "children_type": "span",
+      "children_attrs":
+      {
+        "class": "productname"
+      }
+    },
+    "product_price_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "price f-row"
+      }
+    },
+    "product_price":
+    {
+      "type": "em",
+      "attrs": {}
+    },
+    "product_discount_price":
+    {
+      "type": "del",
+      "attrs": {}
+    },
+    "product_url":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "class": "prodname f-row"
+      }
     }
   }
 }
