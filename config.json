@@ -1,0 +1,5 @@
+{
+  "max_pages": 5,
+  "web_browser": "Chrome",
+  "path_to_browser_driver": ""
+}

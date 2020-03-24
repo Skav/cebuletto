@@ -1,17 +1,23 @@
 {
   "mrcleaner":
   {
-    "url": "https://www.mrcleaner.pl/s?q=",
-    "separator": "+"
+    "url": "https://www.mrcleaner.pl",
+    "request_url": "https://www.mrcleaner.pl/s?q=",
+    "separator": "+",
+    "has_domain_in_link": false
   },
   "detailer.pl":
   {
-    "url": "https://www.detailer.pl/sklep/pl/wyszukiwanie?s=",
-    "separator": "+"
+    "url": "https://www.detailer.pl",
+    "request_url": "https://www.detailer.pl/sklep/pl/wyszukiwanie?s=",
+    "separator": "+",
+    "has_domain_in_link": true
   },
   "automotivecare":
   {
-    "url": "https://automotivecare.pl/pl/searchquery/",
-    "separator": "+"
+    "url": "https://automotivecare.pl",
+    "request_url": "https://automotivecare.pl/pl/searchquery/",
+    "separator": "+",
+    "has_domain_in_link": false
   }
 }

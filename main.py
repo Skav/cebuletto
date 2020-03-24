@@ -7,44 +7,73 @@ import json
 
 '''
 TODO:
-Add async (actually learn how to execute it in thread)
-Add config file
+(?) Add async (actually learn how to execute it in thread)
 Add list of product to search
+Clean code (!)
+Add rest api (?)
+Add some gui (web page)
+Add option to choose on what pages we want search
+Make results more readable
 '''
 def main():
     product_name = input("Podaj interesujacy cie produkt: ")
     threads = []
-    queue = Queue()
+    results = Queue()
+    jobs = Queue()
     start = datetime.now()
-    browser_options = webdriver.ChromeOptions()
-    browser_options.add_argument('headless')
+
+    with open('config.json') as f:
+        config = json.load(f)
+
     with open('shops_structure.json') as f:
         shops_structure = json.load(f)
 
     with open('shops_info.json') as f:
         shop_info = json.load(f)
 
-    #products_list = {}
-    for i, key in enumerate(shops_structure.keys()):
-        threads.append(Thread(target=get_products,args=(shops_structure, shop_info, product_name, key, browser_options, queue), daemon=True))
+    if config["web_browser"] == "Chrome":
+        browser_options = webdriver.ChromeOptions()
+    elif config["web_browser"] == "Firefox":
+        browser_options = webdriver.FirefoxOptions()
+    else:
+        return False
+
+    browser_options.add_argument('headless')
+
+    for key in shops_structure.keys():
+        jobs.put(key)
+
+    for i in range(config["max_pages"]):
+        if not jobs.qsize() > 0:
+            break
+
+        threads.append(Thread(target=get_products, args=(shops_structure, shop_info, config, product_name, browser_options, results, jobs), daemon=True))
         threads[i].start()
 
     for thread in threads:
         thread.join()
 
     print('execution time:', datetime.now()-start)
-    print(queue.queue)
+    print(results.queue)
 
 
-def get_products(shops_structure, shop_info, product_name, key, browser_options,queue):
+def get_products(shops_structure, shops_info, config, product_name, browser_options, result, jobs):
+    while not jobs.empty():
+        key = jobs.get()
         print(key)
+        has_domain = shops_info[key]["has_domain_in_link"]
+        shop_products = {}
         shop_struct = shops_structure[key]
         product_name_keys = product_name.lower().split(" ")
-        product_separated_name = product_name.replace(" ", shop_info[key]["separator"])
-        url = "{}{}".format(shop_info[key]["url"], product_separated_name)
-        product_dict = {}
+        product_separated_name = product_name.replace(" ", shops_info[key]["separator"])
+        url = "{}{}".format(shops_info[key]["request_url"], product_separated_name)
+        products_list = {}
 
-        driver = webdriver.Chrome(options=browser_options)
+        if config["web_browser"] == "Chrome":
+            driver = webdriver.Chrome(options=browser_options)
+        elif config["web_browser"] == "Firefox":
+            driver = webdriver.Firefox(options=browser_options)
+
         driver.get(url)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
 
@@ -63,8 +92,14 @@ def get_products(shops_structure, shop_info, product_name, key, browser_options,
             link = get_link(product, shop_struct)
             price = get_price(product, shop_struct)
 
-            product_dict[name] = {'price': price["regular"], 'discount_price': price["discount"], 'link': link}
-        queue.put(product_dict)
+            if not has_domain:
+                link = "{}{}".format(shops_info[key]["url"], link)
+
+            products_list[name] = {'price': price["regular"], 'discount_price': price["discount"], 'link': link}
+
+        shop_products[key] = products_list
+        result.put(shop_products)
+        jobs.task_done()
 
 def get_name(product, product_name_keys, shop_struct):
     name_container = product.find(shop_struct["product_name"]["type"], attrs=shop_struct["product_name"]["attrs"])
