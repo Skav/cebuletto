@@ -13,13 +13,14 @@ Clean code (!)
 Add rest api (?)
 Add some gui (web page)
 Add option to choose on what pages we want search
-Make results more readable
+Make results more readable (50%)
 '''
 def main():
     product_name = input("Podaj interesujacy cie produkt: ")
     threads = []
     results = Queue()
     jobs = Queue()
+    products_list = {}
     start = datetime.now()
 
     with open('config.json') as f:
@@ -53,8 +54,15 @@ def main():
     for thread in threads:
         thread.join()
 
-    print('execution time:', datetime.now()-start)
+    print('execution time: ', datetime.now()-start)
+
     print(results.queue)
+
+    for products in results.queue:
+        key = list(products.keys())[0]
+        products_list[key] = products[key]
+    print(products_list)
+
 
 
 def get_products(shops_structure, shops_info, config, product_name, browser_options, result, jobs):
@@ -67,7 +75,7 @@ def get_products(shops_structure, shops_info, config, product_name, browser_opti
         product_name_keys = product_name.lower().split(" ")
         product_separated_name = product_name.replace(" ", shops_info[key]["separator"])
         url = "{}{}".format(shops_info[key]["request_url"], product_separated_name)
-        products_list = {}
+        list_of_products = {}
 
         if config["web_browser"] == "Chrome":
             driver = webdriver.Chrome(options=browser_options)
@@ -95,9 +103,9 @@ def get_products(shops_structure, shops_info, config, product_name, browser_opti
             if not has_domain:
                 link = "{}{}".format(shops_info[key]["url"], link)
 
-            products_list[name] = {'price': price["regular"], 'discount_price': price["discount"], 'link': link}
+            list_of_products[name] = {'price': price["regular"], 'discount_price': price["discount"], 'link': link}
 
-        shop_products[key] = products_list
+        shop_products[key] = list_of_products
         result.put(shop_products)
         jobs.task_done()
 

@@ -43,7 +43,7 @@
       "type": "span",
       "attrs":
       {
-        "class": "price"
+        "data-type": "field-price"
       }
     },
 
@@ -184,6 +184,73 @@
       "attrs":
       {
         "class": "prodname f-row"
+      }
+    }
+  },
+  "blyszczacajazda.pl":
+  {
+    "all_products_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "id": "search"
+      }
+    },
+    "products_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "product_wrapper col-md-4 col-xs-6 table_cell"
+      }
+    },
+    "product_name":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "class": "product-name"
+      }
+    },
+    "product_price_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "product_prices"
+      }
+    },
+    "product_price":
+    {
+      "type": "del",
+      "attrs":
+      {
+        "class": "max-price"
+      }
+    },
+    "second_regular_price":
+    {
+      "type": "span",
+      "attrs":
+      {
+        "class": "price"
+      }
+    },
+    "product_discount_price":
+    {
+      "type": "span",
+      "attrs":
+      {
+        "class": "price"
+      }
+    },
+    "product_url":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "class":"product-name"
       }
     }
   }
