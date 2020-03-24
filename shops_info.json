@@ -26,5 +26,12 @@
     "request_url": "https://blyszczacajazda.pl/pl/search.html?text=",
     "separator": "+",
     "has_domain_in_link": false
+  },
+  "kaiser detailing":
+  {
+    "url": "https://kaiserdetailing.pl",
+    "request_url": "https://kaiserdetailing.pl/pl/searchquery/",
+    "separator": "+",
+    "has_domain_in_link": false
   }
 }

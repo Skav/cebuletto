@@ -74,6 +74,7 @@
       }
     }
   },
+
   "detailer.pl":
   {
     "all_products_container":
@@ -99,8 +100,8 @@
       {
         "class": "h3 product-title"
       },
-      "children_type": "a",
-      "children_attrs":{}
+      "child_type": "a",
+      "child_attrs":{}
     },
     "product_price_container":
     {
@@ -125,10 +126,11 @@
       {
         "class": "h3 product-title"
       },
-      "children_type": "a",
-      "children_attrs": {}
+      "child_type": "a",
+      "child_attrs": {}
     }
   },
+
   "automotivecare":
   {
     "all_products_container":
@@ -154,8 +156,8 @@
       {
         "class": "prodname f-row"
       },
-      "children_type": "span",
-      "children_attrs":
+      "child_type": "span",
+      "child_attrs":
       {
         "class": "productname"
       }
@@ -187,6 +189,7 @@
       }
     }
   },
+
   "blyszczacajazda.pl":
   {
     "all_products_container":
@@ -251,6 +254,70 @@
       "attrs":
       {
         "class":"product-name"
+      }
+    }
+  },
+
+  "kaiser detailing":
+  {
+    "all_products_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "products viewphot s-row"
+      }
+    },
+    "products_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "product s-grid-3 product-main-wrap"
+      }
+    },
+    "product_name":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "class": "prodname f-row"
+      },
+      "child_type": "span",
+      "child_attrs":
+      {
+        "class": "productname"
+      }
+    },
+    "product_price_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "price f-row"
+      }
+    },
+    "product_price":
+    {
+      "type": "del",
+      "attrs": {}
+    },
+    "second_regular_price":
+    {
+      "type": "em",
+      "attrs": {}
+    },
+    "discount_price":
+    {
+      "type": "em",
+      "attrs": {}
+    },
+    "product_url":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "class": "prodname f-row"
       }
     }
   }

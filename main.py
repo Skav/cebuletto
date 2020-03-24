@@ -1,3 +1,6 @@
+import re
+from decimal import Decimal
+from re import sub
 from threading import Thread
 from datetime import datetime
 from queue import Queue
@@ -88,7 +91,10 @@ def get_products(shops_structure, shops_info, config, product_name, browser_opti
         products_list = soup.find(shop_struct["all_products_container"]["type"], attrs=shop_struct["all_products_container"]["attrs"])
 
         if not products_list:
-            return None
+            shop_products[key] = "Brak"
+            result.put(shop_products)
+            jobs.task_done()
+            return False
 
         products = products_list.find_all_next(shop_struct["products_container"]["type"], attrs=shop_struct["products_container"]["attrs"])
 
@@ -112,9 +118,9 @@ def get_products(shops_structure, shops_info, config, product_name, browser_opti
 def get_name(product, product_name_keys, shop_struct):
     name_container = product.find(shop_struct["product_name"]["type"], attrs=shop_struct["product_name"]["attrs"])
 
-    if "children_type" in shop_struct["product_name"].keys():
-        name_container = name_container.find(shop_struct["product_name"]["children_type"],
-                                             attrs=shop_struct["product_name"]["children_attrs"])
+    if "child_type" in shop_struct["product_name"].keys():
+        name_container = name_container.find(shop_struct["product_name"]["child_type"],
+                                             attrs=shop_struct["product_name"]["child_attrs"])
 
     name = name_container.text if name_container.text else name_container['title']
 
@@ -127,8 +133,11 @@ def get_price(product, shop_struct):
     if "product_price_container" in shop_struct.keys():
         price_div = product.find(shop_struct["product_price_container"]["type"],
                                  attrs=shop_struct["product_price_container"]["attrs"])
+
         regular_price = price_div.find(shop_struct["product_price"]["type"],
-                                       attrs=shop_struct["product_price"]["attrs"]).text
+                                       attrs=shop_struct["product_price"]["attrs"])
+
+        regular_price = regular_price.text if regular_price else None
 
         if not regular_price and "second_regular_price" in shop_struct.keys():
             regular_price = price_div.find(shop_struct["second_regular_price"]["type"],
@@ -153,14 +162,26 @@ def get_price(product, shop_struct):
                 discount_price = product.find(shop_struct["product_discount_price"]["type"],
                                               attrs=shop_struct["product_discount_price"]["attrs"]).text
 
+    regular_price = re.sub('[^\d+.,]', '', regular_price)
+    discount_price = re.sub('[^\d+.,]', '', discount_price)
+
+    if  regular_price[:-1] in (',', '.'):
+        regular_price = regular_price[:-1]
+
+    if discount_price[:-1] in ('.', ','):
+        discount_price = discount_price[:-1]
+
+    if regular_price == discount_price:
+        discount_price = ""
+
     return {"regular": regular_price, "discount": discount_price}
 
 
 def get_link(product, shop_struct):
-    if "children_type" in shop_struct["product_url"]:
+    if "child_type" in shop_struct["product_url"]:
         link_container = product.find(shop_struct["product_url"]["type"], attrs=shop_struct["product_url"]["attrs"])
-        return link_container.find(shop_struct["product_url"]["children_type"],
-                                   attrs=shop_struct["product_url"]["children_attrs"])['href']
+        return link_container.find(shop_struct["product_url"]["child_type"],
+                                   attrs=shop_struct["product_url"]["child_attrs"])['href']
     return product.find(shop_struct["product_url"]["type"], attrs=shop_struct["product_url"]["attrs"])['href']
 
 main()
