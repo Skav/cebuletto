@@ -11,15 +11,15 @@ import json
 '''
 TODO:
 (?) Add async (actually learn how to execute it in thread)
-Add list of product to search
 Clean code (!)
 Add rest api (?)
 Add some gui (web page)
-Add option to choose on what pages we want search
-Make results more readable (50%)
+Add option to choose on what pages we want search (in gui/rest api version)
 '''
 def main():
-    product_name = input("Podaj interesujacy cie produkt: ")
+    print("Produkty oddzielaj ';' jezeli jest ich wiecej niz 1")
+    product_name = input("Podaj interesujacy cie produkt(y): ")
+    product_name = product_name.split(';')
     threads = []
     results = Queue()
     jobs = Queue()
@@ -44,41 +44,69 @@ def main():
 
     browser_options.add_argument('headless')
 
-    for key in shops_structure.keys():
-        jobs.put(key)
+    add_jobs_to_queue(shops_structure, jobs, product_name)
 
     for i in range(config["max_pages"]):
         if not jobs.qsize() > 0:
             break
 
-        threads.append(Thread(target=get_products, args=(shops_structure, shop_info, config, product_name, browser_options, results, jobs), daemon=True))
+        threads.append(Thread(target=get_products, args=(shops_structure, shop_info, config, browser_options, results, jobs), daemon=True))
         threads[i].start()
 
-    for thread in threads:
-        thread.join()
+    wait_for_threads(threads)
+    products_list = add_products_to_dict(results)
 
     print('execution time: ', datetime.now()-start)
 
-    print(results.queue)
-
-    for products in results.queue:
-        key = list(products.keys())[0]
-        products_list[key] = products[key]
     print(products_list)
 
 
+def add_products_to_dict(results):
+    products_keys = list()
+    products_list = {}
 
-def get_products(shops_structure, shops_info, config, product_name, browser_options, result, jobs):
+    for products in results.queue:
+        key = list(products.keys())[0]
+        if key not in products_keys:
+            products_keys.append(key)
+            products_list[key] = {}
+
+    for products in results.queue:
+        for key in products_keys:
+            if key in products.keys():
+                shop_name = list(products[key].keys())[0]
+                products_list[key][shop_name] = products[key][shop_name]
+                break
+    return products_list
+
+
+
+def wait_for_threads(threads):
+    for thread in threads:
+        thread.join()
+
+
+def add_jobs_to_queue(shops_structure, queue, products_list):
+    for product in products_list:
+        for key in shops_structure.keys():
+            queue.put('{};{}'.format(key, product))
+
+def get_products(shops_structure, shops_info, config, browser_options, result, jobs):
     while not jobs.empty():
-        key = jobs.get()
-        print(key)
+        search_data = jobs.get().split(';')
+        key = search_data[0].strip()
+        product_name = search_data[1].strip()
+        print(key, " ", product_name)
+
         has_domain = shops_info[key]["has_domain_in_link"]
         shop_products = {}
+        list_of_products = {}
+        product_and_shop = {}
         shop_struct = shops_structure[key]
         product_name_keys = product_name.lower().split(" ")
         product_separated_name = product_name.replace(" ", shops_info[key]["separator"])
         url = "{}{}".format(shops_info[key]["request_url"], product_separated_name)
-        list_of_products = {}
+
 
         if config["web_browser"] == "Chrome":
             driver = webdriver.Chrome(options=browser_options)
@@ -92,7 +120,8 @@ def get_products(shops_structure, shops_info, config, product_name, browser_opti
 
         if not products_list:
             shop_products[key] = "Brak"
-            result.put(shop_products)
+            product_and_shop[product_name] = shop_products
+            result.put(product_and_shop)
             jobs.task_done()
             return False
 
@@ -112,7 +141,8 @@ def get_products(shops_structure, shops_info, config, product_name, browser_opti
             list_of_products[name] = {'price': price["regular"], 'discount_price': price["discount"], 'link': link}
 
         shop_products[key] = list_of_products
-        result.put(shop_products)
+        product_and_shop[product_name] = shop_products
+        result.put(product_and_shop)
         jobs.task_done()
 
 def get_name(product, product_name_keys, shop_struct):
