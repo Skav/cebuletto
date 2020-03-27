@@ -17,7 +17,6 @@ class webScrapper:
         self.__result = Queue()
         self.__jobs = Queue()
         self.__threads = []
-        self.__add_tasks_to_jobs()
 
     def __load_json(self, name):
         try:
@@ -41,59 +40,63 @@ class webScrapper:
         except Exception as e:
             print("Set browser options error: {}".format(e))
 
-    def __add_tasks_to_jobs(self):
+    def __add_tasks_to_jobs(self, shop_list=None):
         try:
+            shops = shop_list if shop_list else self.__shops_structure.keys()
             for product in self.__products_list:
-                for key in self.__shops_structure.keys():
-                    self.__jobs.put('{};{}'.format(key, product))
+                for shop in shops:
+                    self.__jobs.put('{};{}'.format(shop, product))
         except Exception as e:
             print("Error while adding jobs to queue: {}".format(e))
 
     def __get_products(self):
-        while not self.__jobs.empty():
-            list_of_products = {}
+        try:
+            while not self.__jobs.empty():
+                list_of_products = {}
 
-            search_data = self.__jobs.get().split(';')
-            key = search_data[0].strip()
-            product_name = search_data[1].strip()
+                search_data = self.__jobs.get().split(';')
+                shop = search_data[0].strip()
+                product_name = search_data[1].strip()
 
-            shop_products = {product_name: {}}
+                shop_products = {product_name: {}}
 
-            print(key, " ", product_name)
+                print(shop, " ", product_name)
 
-            shop_struct = self.__shops_structure[key]
-            product_name_keys = product_name.lower().split(" ")
-            product_separated_name = product_name.replace(" ", self.__shops_info[key]["separator"])
-            url = "{}{}".format(self.__shops_info[key]["request_url"], product_separated_name)
+                shop_struct = self.__shops_structure[shop]
+                product_name_keys = product_name.lower().split(" ")
+                product_separated_name = product_name.replace(" ", self.__shops_info[shop]["separator"])
+                url = "{}{}".format(self.__shops_info[shop]["request_url"], product_separated_name)
 
-            driver = self.__set_web_driver()
-            if not driver:
-                print("Webdriver does not exist!")
-                return False
-            soup = self.__get_page(url, driver)
+                driver = self.__set_web_driver()
+                if not driver:
+                    print("Webdriver does not exist!")
+                    return False
+                soup = self.__get_page(url, driver)
 
 
-            products = self.__get_products_list(soup, shop_struct)
+                products = self.__get_products_list(soup, shop_struct)
 
-            if not products:
-                shop_products[product_name][key] = "Brak"
+                if not products:
+                    shop_products[product_name][shop] = "Brak"
+                    self.__result.put(shop_products)
+                    self.__jobs.task_done()
+                    return False
+
+                for product in products:
+                    name = self.__get_name(product, product_name_keys, shop_struct)
+                    if not name:
+                        continue
+
+                    link = self.__get_link(product, shop_struct, shop)
+                    price = self.__get_price(product, shop_struct)
+
+                    list_of_products[name] = {'price': price["regular"], 'discount_price': price["discount"], 'link': link}
+
+                shop_products[product_name][shop] = list_of_products
                 self.__result.put(shop_products)
                 self.__jobs.task_done()
-                return False
-
-            for product in products:
-                name = self.__get_name(product, product_name_keys, shop_struct)
-                if not name:
-                    continue
-
-                link = self.__get_link(product, shop_struct, key)
-                price = self.__get_price(product, shop_struct)
-
-                list_of_products[name] = {'price': price["regular"], 'discount_price': price["discount"], 'link': link}
-
-            shop_products[product_name][key] = list_of_products
-            self.__result.put(shop_products)
-            self.__jobs.task_done()
+        except Exception as e:
+            print("Error in main function: {}".format(e))
 
     def __set_web_driver(self):
         try:
@@ -107,8 +110,11 @@ class webScrapper:
             print("Error while setting webdriver: {}".format(e))
 
     def __get_page(self, url, driver):
-        driver.get(url)
-        return BeautifulSoup(driver.page_source, 'html.parser')
+        try:
+            driver.get(url)
+            return BeautifulSoup(driver.page_source, 'html.parser')
+        except Exception as e:
+            print("Error while getting page: {}".format(e))
 
     def __get_products_list(self, soup, shop_struct):
         try:
@@ -156,90 +162,112 @@ class webScrapper:
             print('Error while getting product url: {}'.format(e))
 
     def __get_price(self, product, shop_struct):
-        discount_price = ""
-        if "product_price_container" in shop_struct.keys():
-            price_div = product.find(shop_struct["product_price_container"]["type"],
-                                     attrs=shop_struct["product_price_container"]["attrs"])
-            regular_price = price_div.find(shop_struct["product_price"]["type"],
-                                           attrs=shop_struct["product_price"]["attrs"])
+        try:
+            discount_price = ""
+            if "product_price_container" in shop_struct.keys():
+                price_div = product.find(shop_struct["product_price_container"]["type"],
+                                         attrs=shop_struct["product_price_container"]["attrs"])
+                regular_price = price_div.find(shop_struct["product_price"]["type"],
+                                               attrs=shop_struct["product_price"]["attrs"])
 
-            regular_price = regular_price.text if regular_price else None
+                regular_price = regular_price.text if regular_price else None
 
-            if not regular_price and "second_regular_price" in shop_struct.keys():
-                regular_price = price_div.find(shop_struct["second_regular_price"]["type"],
-                                               attrs=shop_struct["second_regular_price"]["attrs"]).text
+                if not regular_price and "second_regular_price" in shop_struct.keys():
+                    regular_price = price_div.find(shop_struct["second_regular_price"]["type"],
+                                                   attrs=shop_struct["second_regular_price"]["attrs"]).text
 
-            if "product_discount_price" in shop_struct.keys():
-                if price_div.find(shop_struct["product_discount_price"]["type"],
-                                  attrs=shop_struct["product_discount_price"]["attrs"]):
-                    discount_price = price_div.find(shop_struct["product_discount_price"]["type"],
-                                                    attrs=shop_struct["product_discount_price"]["attrs"]).text
-        else:
-            regular_price = product.find(shop_struct["product_price"]["type"],
-                                         attrs=shop_struct["product_price"]["attrs"]).text
+                if "product_discount_price" in shop_struct.keys():
+                    if price_div.find(shop_struct["product_discount_price"]["type"],
+                                      attrs=shop_struct["product_discount_price"]["attrs"]):
+                        discount_price = price_div.find(shop_struct["product_discount_price"]["type"],
+                                                        attrs=shop_struct["product_discount_price"]["attrs"]).text
+            else:
+                regular_price = product.find(shop_struct["product_price"]["type"],
+                                             attrs=shop_struct["product_price"]["attrs"]).text
 
-            if not regular_price and "second_regular_price" in shop_struct.keys():
-                regular_price = product.find(shop_struct["second_regular_price"]["type"],
-                                             attrs=shop_struct["second_regular_price"]["attrs"]).text
+                if not regular_price and "second_regular_price" in shop_struct.keys():
+                    regular_price = product.find(shop_struct["second_regular_price"]["type"],
+                                                 attrs=shop_struct["second_regular_price"]["attrs"]).text
 
-            if "product_discount_price" in shop_struct.keys():
-                if product.find(shop_struct["product_discount_price"]["type"],
-                                attrs=shop_struct["product_discount_price"]["attrs"]):
-                    discount_price = product.find(shop_struct["product_discount_price"]["type"],
-                                                  attrs=shop_struct["product_discount_price"]["attrs"]).text
+                if "product_discount_price" in shop_struct.keys():
+                    if product.find(shop_struct["product_discount_price"]["type"],
+                                    attrs=shop_struct["product_discount_price"]["attrs"]):
+                        discount_price = product.find(shop_struct["product_discount_price"]["type"],
+                                                      attrs=shop_struct["product_discount_price"]["attrs"]).text
 
-        regular_price = sub('[^\d+.,]', '', regular_price).replace(',', '.')
-        discount_price = sub('[^\d+.,]', '', discount_price).replace(',', '.')
+            regular_price = sub('[^\d+.,]', '', regular_price).replace(',', '.')
+            discount_price = sub('[^\d+.,]', '', discount_price).replace(',', '.')
 
-        if regular_price[-1:] in (',', '.'):
-            regular_price = regular_price[:-1]
+            if regular_price[-1:] in (',', '.'):
+                regular_price = regular_price[:-1]
 
-        if discount_price[-1:] in ('.', ','):
-            discount_price = discount_price[:-1]
+            if discount_price[-1:] in ('.', ','):
+                discount_price = discount_price[:-1]
 
-        regular_price = Decimal(regular_price.replace(',', '.')) if regular_price else Decimal(0)
-        discount_price = Decimal(discount_price.replace(',', '.')) if discount_price else Decimal(0)
+            regular_price = Decimal(regular_price.replace(',', '.')) if regular_price else Decimal(0)
+            discount_price = Decimal(discount_price.replace(',', '.')) if discount_price else Decimal(0)
 
-        if regular_price == discount_price:
-            discount_price = Decimal(0)
+            if regular_price == discount_price:
+                discount_price = Decimal(0)
 
-        return {"regular": regular_price, "discount": discount_price}
+            return {"regular": regular_price, "discount": discount_price}
+        except Exception as e:
+            print("Error while getting price: {}".format(e))
 
     def __wait_for_threads(self):
-        for thread in self.__threads:
-            thread.join()
+        try:
+            for thread in self.__threads:
+                thread.join()
+        except Exception as e:
+            print("Error while starting threads: {}".format(e))
 
-    def find_products(self):
+    def find_products(self, shop_list=None):
+        self.__add_tasks_to_jobs(shop_list)
         self.__init_threads()
         self.__wait_for_threads()
 
         return self.__convert_to_dict()
 
     def __convert_to_dict(self):
-        products_keys = list()
-        products_list = {}
+        try:
+            products_keys = list()
+            products_list = {}
 
-        for products in self.__result.queue:
-            key = list(products.keys())[0]
-            if key not in products_keys:
-                products_keys.append(key)
-                products_list[key] = {}
+            for products in self.__result.queue:
+                key = list(products.keys())[0]
+                if key not in products_keys:
+                    products_keys.append(key)
+                    products_list[key] = {}
 
-        for products in self.__result.queue:
-            for key in products_keys:
-                if key in products.keys():
-                    shop_name = list(products[key].keys())[0]
-                    products_list[key][shop_name] = products[key][shop_name]
-                    break
-        return products_list
+            for products in self.__result.queue:
+                for key in products_keys:
+                    if key in products.keys():
+                        shop_name = list(products[key].keys())[0]
+                        products_list[key][shop_name] = products[key][shop_name]
+                        break
+            return products_list
+        except Exception as e:
+            print("Error while convert products to dict: {}".format(e))
 
     def __init_threads(self):
-        for i in range(self.__config["max_pages"]):
-            if not self.__jobs.qsize() > 0:
-                break
-            self.__threads.append(Thread(target=self.__get_products, daemon=True))
-            self.__threads[i].start()
+        try:
+            for i in range(self.__config["max_pages"]):
+                if not self.__jobs.qsize() > 0:
+                    break
+                self.__threads.append(Thread(target=self.__get_products, daemon=True))
+                self.__threads[i].start()
+        except Exception as e:
+            print("Error while init a threads: {}".format(e))
 
     def __wait_for_threads(self):
-        for thread in self.__threads:
-            thread.join()
+        try:
+            for thread in self.__threads:
+                thread.join()
+        except Exception as e:
+            print("Error while joining threads: {}".format(e))
+
+    def get_shops_list(self):
+        try:
+            return list(self.__shops_info.keys())
+        except Exception as e:
+            print("Error while getting shops list: {}".format(e))

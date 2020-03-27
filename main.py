@@ -3,11 +3,10 @@ from webScrapper import webScrapper
 
 '''
 TODO:
-(?) Add async (actually learn how to execute it in thread)
 Clean code (!)
 Add rest api (?)
 Add some gui (web page)
-Add option to choose on what pages we want search (in gui/rest api version)
+Add option to choose on what pages we want search (in gui/rest api version) 50% done
 '''
 
 def main():
@@ -17,7 +16,8 @@ def main():
 
     start = datetime.now()
     scrapper = webScrapper(product_name)
-    products_list = scrapper.find_products()
+    shop_list = scrapper.get_shops_list()
+    products_list = scrapper.find_products(shop_list)
     print('execution time: ', datetime.now()-start)
 
     print(products_list)
