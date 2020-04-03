@@ -7,6 +7,7 @@ Clean code (!)
 Add rest api (?)
 Add some gui (web page)
 Add option to choose on what pages we want search (in gui/rest api version) 50% done
+Add more shops
 '''
 
 def main():

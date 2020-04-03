@@ -6,6 +6,16 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from re import sub
 
+class shopsInfo:
+    @staticmethod
+    def get_shops():
+        try:
+            with open('shops_info.json') as f:
+                shops = json.load(f)
+                return list(shops.keys())
+        except Exception as e:
+            print("Loading file error: {}".format(e))
+
 
 class webScrapper:
     def __init__(self, products):
@@ -27,10 +37,9 @@ class webScrapper:
 
     def __set_browser_options(self, web_browser):
         try:
-            browser = web_browser
-            if browser == "Chrome":
+            if web_browser == "Chrome":
                 browser_options = webdriver.ChromeOptions()
-            elif browser == "Firefox":
+            elif web_browser == "Firefox":
                 browser_options = webdriver.FirefoxOptions()
             else:
                 return False
@@ -210,7 +219,7 @@ class webScrapper:
             if regular_price == discount_price:
                 discount_price = Decimal(0)
 
-            return {"regular": regular_price, "discount": discount_price}
+            return {"regular": str(regular_price), "discount": str(discount_price)}
         except Exception as e:
             print("Error while getting price: {}".format(e))
 
