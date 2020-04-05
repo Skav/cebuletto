@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from webScrapper import webScrapper
 
@@ -19,8 +20,11 @@ def main():
     scrapper = webScrapper(product_name)
     shop_list = scrapper.get_shops_list()
     products_list = scrapper.find_products(shop_list)
+    # with open('data.json', ) as f:
+    #     file = json.load(f)
+    results = scrapper.sort_products_by_price(products_list)
     print('execution time: ', datetime.now()-start)
 
-    print(products_list)
+    print(results)
 
 main()

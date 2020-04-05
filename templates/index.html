@@ -3,32 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="../static/css/style.css">
-    <title>Title</title>
+    <title>Cebuletto - twoja porównywarka cen</title>
+    <script src="../static/js/api.js"></script>
 </head>
 <body onload="createCheckbox()">
-<header>Porównywarka cen</header>
-
+<header>Cebulett<img src="../static/css/logo.png"/ height="50" width="30"></header>
 <section id="shop_list">
     <form onsubmit="get_values(); return false">
         <div id="shops"></div>
 
         <button type="button" id="add" onclick="addProduct()">Dodaj kolejny produkt</button>
         <button type="button" id="del" onclick="delProduct()">Usun ostatni produkt</button>
-        <input type="submit" value="Szukaj" id="find">
+        <input type="submit" value="Cebuluj" id="find">
 
         <div id="products">
-            <input type="text" name="product_name" required>
+            <input type="text" name="product_name" placeholder="Wpisz nazwe produktu" required>
         </div>
     </form>
 
 </section>
-<section class="results">
-    <div id="cheapestByProduct" class="products_list"> Najtansze produkty</div>
-    <div id="cheapestInShop" class="products_list"> Najtansze produkty w danym sklepie</div>
-    <div id="allProducts" class="products_list"> Wszystpie produkty</div>
-</section>
+<section id="results"></section>
 
-<footer><a href="https://github.com/Skav" target="_blank">Dawid Smulkowski 2020&copy;</a></footer>
-<script src="../static/js/api.js"></script>
+<footer><a href="https://github.com/Skav" target="_blank">Dawid Smulkowski 2020 &copy;</a></footer>
 </body>
 </html>

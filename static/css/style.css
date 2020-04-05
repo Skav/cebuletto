@@ -5,25 +5,71 @@ body{
 header{
     text-align: center;
     font-size: 50px;
-    color: white;
-    border-bottom: solid 3px;
+    color: rgb(206, 134, 0);
+    border-bottom: 3px solid;
     padding: 10px;
 }
 
 footer{
-    position: absolute;
+    position: fixed;
     bottom: 0;
+    left:0;
+    font-size: 25px;
     width: 100%;
     height: 2.5rem;
     text-align: center;
-    font-size: 25px;
+    padding-top: 5px;
     color: white;
     background-color: #222;
+    border: 1px solid #363636;
 }
 
-a{
+a:link, a:visited{
     color: white;
     text-decoration: none;
+}
+
+a:hover{
+    color: #999;
+}
+
+#loading{
+    z-index: 10;
+    display: flex;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(0,0,0,0.5);
+    color:white;
+    font-size: 50px;
+}
+
+#loading::before{
+    position: absolute;
+    content: '';
+    height: 5px;
+    width: 80px;
+    top: 60%;
+    left: 50% - 80px;
+    background-color: white;
+
+    animation-duration: 3s;
+    animation-name: loading;
+    animation-iteration-count: infinite;
+}
+
+@keyframes loading{
+    0%{
+        transform: rotate(0deg);
+    }
+    100%{
+        transform: rotate(360deg);
+    }
 }
 
 #shop_list{
@@ -40,6 +86,10 @@ a{
     margin-bottom: 10px;
     border: 1px solid black;
     box-shadow: inset 0 0 10px black;
+}
+
+#results{
+    margin-bottom: 2.5rem;
 }
 
 .item_shop{
@@ -76,7 +126,7 @@ a{
 
 .item_shop input[type='checkbox']:checked+label::before{
     content: "";
-    background-color: rgb(1, 63, 143);
+    background-color: rgb(206, 134, 0);
 }
 
 .item_shop input[type="checkbox"]+label{
@@ -104,8 +154,8 @@ input[type='text']{
 }
 
 input[type="text"]:focus{
-    border-color: rgb(1, 63, 143);
-    box-shadow: inset 0 0 10px rgb(1, 63, 143);
+    border-color: rgb(206, 134, 0);
+    box-shadow: inset 0 0 10px rgb(206, 134, 0);
 }
 
 button[type="button"], input[type="submit"]{
@@ -133,36 +183,42 @@ button[type="button"]:hover, input[type="submit"]:hover{
 }
 
 #find:hover{
-    box-shadow: inset 0 0 10px rgb(1, 63, 143);
-    border-color: rgb(1, 63, 143);
+    box-shadow: inset 0 0 10px rgb(206, 134, 0);
+    border-color: rgb(206, 134, 0);
 }
 
 .products_list{
     color: white;
-    display: none;
+    display: grid;
+    text-align: center;
     font-size: 40px;
     grid-template-columns: 100%;
     grid-template-rows: auto;
+    margin-top: 5rem;
 }
 
 .item{
     color: rgb(209, 209, 209);
+    text-align: left;
     text-decoration: solid;
     font-size: 30px;
     margin: 10px 0px 10px 0px;
     background-color: #222;
+    border: 1px solid #000;
 }
 
 .shop{
     font-size: 25px;
-    color: rgb(0, 110, 255);
-    margin: 20px 0px 20px 0px;
+    font-weight: bold;
+    color: rgb(206, 134, 0);
+    margin-top: 20px;
 }
 
 .product{
     display: grid;
+    font-weight: normal;
     font-size: 20px;
-    grid-template-columns: 70% 15% 15%;
+    grid-template-columns: 70% 30%;
     grid-template-rows: auto;
     border-top: 1px solid gray;
     border-bottom: 1px solid gray;
@@ -170,15 +226,15 @@ button[type="button"]:hover, input[type="submit"]:hover{
     margin-right: 5px;
 }
 
-.product_name > a{
-    color:white;
-    text-decoration: None;
+.product_name.empty{
+    color: rgb(141, 141, 141);
 }
 
 .price{
-    color: rgb(0, 110, 255)
+    color: rgb(206, 134, 0)
 }
 
-.discount{
-    color: green;
+.price.base{
+    color: rgb(104, 104, 104);
+    text-decoration: line-through;
 }

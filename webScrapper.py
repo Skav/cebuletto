@@ -1,4 +1,5 @@
 import json
+from collections import OrderedDict
 from decimal import Decimal
 from queue import Queue
 from threading import Thread
@@ -15,6 +16,7 @@ class shopsInfo:
                 return list(shops.keys())
         except Exception as e:
             print("Loading file error: {}".format(e))
+            raise
 
 
 class webScrapper:
@@ -34,6 +36,7 @@ class webScrapper:
                 return json.load(f)
         except Exception as e:
             print("Loading file error: {}".format(e))
+            raise
 
     def __set_browser_options(self, web_browser):
         try:
@@ -48,6 +51,7 @@ class webScrapper:
             return browser_options
         except Exception as e:
             print("Set browser options error: {}".format(e))
+            raise
 
     def __add_tasks_to_jobs(self, shop_list=None):
         try:
@@ -57,6 +61,7 @@ class webScrapper:
                     self.__jobs.put('{};{}'.format(shop, product))
         except Exception as e:
             print("Error while adding jobs to queue: {}".format(e))
+            raise
 
     def __get_products(self):
         try:
@@ -86,9 +91,7 @@ class webScrapper:
                 products = self.__get_products_list(soup, shop_struct)
 
                 if not products:
-                    shop_products[product_name][shop] = "Brak"
-                    self.__result.put(shop_products)
-                    self.__jobs.task_done()
+                    self.__no_product_in_shop(shop_products, product_name, shop)
                     return False
 
                 for product in products:
@@ -101,11 +104,20 @@ class webScrapper:
 
                     list_of_products[name] = {'price': price["regular"], 'discount_price': price["discount"], 'link': link}
 
-                shop_products[product_name][shop] = list_of_products
-                self.__result.put(shop_products)
-                self.__jobs.task_done()
+                if not list_of_products:
+                    self.__no_product_in_shop(shop_products, product_name, shop)
+                else:
+                    shop_products[product_name][shop] = list_of_products
+                    self.__result.put(shop_products)
+                    self.__jobs.task_done()
         except Exception as e:
             print("Error in main function: {}".format(e))
+            raise
+
+    def __no_product_in_shop(self, shop_products, product_name, shop):
+        shop_products[product_name][shop] = {product_name: "Brak"}
+        self.__result.put(shop_products)
+        self.__jobs.task_done()
 
     def __set_web_driver(self):
         try:
@@ -117,6 +129,7 @@ class webScrapper:
                 return False
         except Exception as e:
             print("Error while setting webdriver: {}".format(e))
+            raise
 
     def __get_page(self, url, driver):
         try:
@@ -124,6 +137,7 @@ class webScrapper:
             return BeautifulSoup(driver.page_source, 'html.parser')
         except Exception as e:
             print("Error while getting page: {}".format(e))
+            raise
 
     def __get_products_list(self, soup, shop_struct):
         try:
@@ -136,6 +150,7 @@ class webScrapper:
                                                attrs=shop_struct["products_container"]["attrs"])
         except Exception as e:
             print("Error while getting products list: {}".format(e))
+            raise
 
     def __get_name(self, product, product_name_keys, shop_struct):
         try:
@@ -153,6 +168,7 @@ class webScrapper:
             return name
         except Exception as e:
             print("Error while getting product name: {}".format(e))
+            raise
 
     def __get_link(self, product, shop_struct, key):
         try:
@@ -169,6 +185,7 @@ class webScrapper:
             return link
         except Exception as e:
             print('Error while getting product url: {}'.format(e))
+            raise
 
     def __get_price(self, product, shop_struct):
         try:
@@ -222,6 +239,7 @@ class webScrapper:
             return {"regular": str(regular_price), "discount": str(discount_price)}
         except Exception as e:
             print("Error while getting price: {}".format(e))
+            raise
 
     def __wait_for_threads(self):
         try:
@@ -229,13 +247,17 @@ class webScrapper:
                 thread.join()
         except Exception as e:
             print("Error while starting threads: {}".format(e))
+            raise
 
     def find_products(self, shop_list=None):
-        self.__add_tasks_to_jobs(shop_list)
-        self.__init_threads()
-        self.__wait_for_threads()
+        try:
+            self.__add_tasks_to_jobs(shop_list)
+            self.__init_threads()
+            self.__wait_for_threads()
 
-        return self.__convert_to_dict()
+            return self.__convert_to_dict()
+        except Exception:
+            raise
 
     def __convert_to_dict(self):
         try:
@@ -257,6 +279,18 @@ class webScrapper:
             return products_list
         except Exception as e:
             print("Error while convert products to dict: {}".format(e))
+            raise
+
+    def sort_products_by_price(self, products_list, reverse=False):
+        try:
+            for item in products_list.keys():
+                for shop in products_list[item].keys():
+                    products_list[item][shop] = {k: v for k, v in sorted(products_list[item][shop].items(),
+                                                 key=lambda x: Decimal(x[1]["price"]) if not x[1] == "Brak" else x[1],
+                                                 reverse=reverse)}
+            return products_list
+        except Exception:
+            raise
 
     def __init_threads(self):
         try:
@@ -267,6 +301,7 @@ class webScrapper:
                 self.__threads[i].start()
         except Exception as e:
             print("Error while init a threads: {}".format(e))
+            raise
 
     def __wait_for_threads(self):
         try:
@@ -274,9 +309,11 @@ class webScrapper:
                 thread.join()
         except Exception as e:
             print("Error while joining threads: {}".format(e))
+            raise
 
     def get_shops_list(self):
         try:
             return list(self.__shops_info.keys())
         except Exception as e:
             print("Error while getting shops list: {}".format(e))
+            raise

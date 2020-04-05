@@ -1,14 +1,5 @@
 const url = 'http://127.0.0.1:5000/'
 
-function hideElement(id)
-{
-    let elementToHide = document.getElementById(id+"Data")
-    if (elementToHide.style.display == 'none')
-        elementToHide.style.display = 'flex'
-    else
-    elementToHide.style.display = 'none'
-}
-
 async function getData()
 {
     const response = await fetch(url+"shops");
@@ -48,6 +39,7 @@ function addProduct()
     let input = document.createElement('input')
     input.name = "product_name"
     input.type = 'text'
+    input.placeholder = "Wpisz nazwe produktu"
     input.required = true;
     let div = document.getElementById('products')
     div.appendChild(input)
@@ -61,28 +53,52 @@ function delProduct()
         div.lastChild.remove()
 }
 
-async function get_values()
+function startLoading()
 {
-    let products = document.getElementsByName("product_name")
+    let loading = document.createElement("div")
+    loading.id = "loading"
+    loading.innerHTML = "Ładowanie zawarości, moze to potrwac kilka minut..."
+    document.body.insertBefore(loading, document.body.firstChild)
+}
+
+function stopLoading()
+{
+    document.body.firstChild.remove()
+}
+
+function getCheckedShops()
+{
     let shops = document.getElementsByName("shop")
     let checkedShops = []
-    let products_list = []
-
     for(i=0; i<shops.length; i++)
     {
         if(shops[i].checked)
-            checkedShops.push(shops[i])
+            checkedShops.push(shops[i].value)
     }
+    return checkedShops
+}
+
+function getUserProducts()
+{
+    let products = document.getElementsByName("product_name")
+    let products_list = []
 
     for(let i=0; i<products.length; i++)
         products_list.push(products[i].value)
 
+    return products_list
+}
+
+async function get_values()
+{
+    startLoading()
+    let checkedShops = getCheckedShops()
+    let products_list = getUserProducts()
+
     let json = {
-        "products_list": products_list
+        "products_list": products_list,
+        "shops_list": checkedShops
     }
-
-
-    console.log(json)
 
     const options = {
         method: 'POST',
@@ -92,19 +108,18 @@ async function get_values()
         body: JSON.stringify(json)
     }
 
+
     const response = await fetch(url+'find', options)
     const data = await response.json()
-    console.log(data)
     let {final, byProduct} = findCheapest(data)
     drawProducts(data, final, byProduct)
+    stopLoading()
 }
 
 function findCheapest(jsonData)
 {
     let {cheapest, final} = findCheapestInShop(jsonData)
     let byProduct = findCheapestByProduct(cheapest, jsonData)
-
-    console.log(byProduct)
     return {final, byProduct}
 }
 
@@ -123,27 +138,37 @@ function findCheapestInShop(jsonData)
             final_price = Number.MAX_VALUE
             for(item in jsonData[product][shop])
             {
-                let price = parseFloat(jsonData[product][shop][item]["price"])
-                let discount_price = parseFloat(jsonData[product][shop][item]["discount_price"])
-
-                if(price < final_price && discount_price < final_price || final_price == 0)
+                if(jsonData[product][shop][item] == "Brak")
                 {
-                    if (discount_price > 0 && discount_price < price)
-                        final_price = discount_price
-                    else
-                        final_price = price
+                    cheapest[product][shop] = {}
+                    final[product][shop] = {}
+                    cheapest[product][shop][item] = "Brak"
+                    final[product][shop][item] = "Brak"
+                }
+                else
+                {
+                    let price = parseFloat(jsonData[product][shop][item]["price"])
+                    let discount_price = parseFloat(jsonData[product][shop][item]["discount_price"])
 
-                    if(isEmpty(cheapest[product][shop]))
+                    if(price < final_price && discount_price < final_price || final_price == 0)
                     {
-                        cheapest[product][shop][item] = {"price": final_price}
-                        final[product][shop][item] = jsonData[product][shop][item]
-                    }
-                    else if(!isLower(cheapest[product][shop], final_price))
-                    {
-                        cheapest[product][shop] = {}
-                        final[product][shop] = {}
-                        cheapest[product][shop][item] = {"price": final_price}
-                        final[product][shop][item] = jsonData[product][shop][item]
+                        if (discount_price > 0 && discount_price < price)
+                            final_price = discount_price
+                        else
+                            final_price = price
+
+                        if(isEmpty(cheapest[product][shop]))
+                        {
+                            cheapest[product][shop][item] = {"price": final_price}
+                            final[product][shop][item] = jsonData[product][shop][item]
+                        }
+                        else if(!isLower(cheapest[product][shop], final_price))
+                        {
+                            cheapest[product][shop] = {}
+                            final[product][shop] = {}
+                            cheapest[product][shop][item] = {"price": final_price}
+                            final[product][shop][item] = jsonData[product][shop][item]
+                        }
                     }
                 }
             }
@@ -166,12 +191,18 @@ function findCheapestByProduct(data, jsonData)
             cheapest_product[product][shop] = {}
             if(!isEmpty(data[product][shop]))
             {
+                let item = Object.keys(data[product][shop])
                 if(isLower(data[product][shop], cheapest_value))
                 {
-                    item = Object.keys(data[product][shop])
                     cheapest_product[product] = {}
                     cheapest_product[product][shop] = {}
                     cheapest_product[product][shop][item] = jsonData[product][shop][item]
+                }
+                else if (data[product][shop][item] == "Brak")
+                {
+                    cheapest_product[product] = {}
+                    cheapest_product[product][shop] = {}
+                    cheapest_product[product][shop][item] = "Brak"
                 }
             }
         }
@@ -192,11 +223,12 @@ function isLower(obj, value)
 
 function drawProducts(allProductsList, cheapestInShop, cheapestByProduct)
 {
-    let byProduct = document.getElementById('cheapestByProduct')
-    let InShop = document.getElementById('cheapestInShop')
-    let allProducts = document.getElementById('allProducts')
+    let results = document.getElementById('results')
+    clearContainer(results)
 
-    let elements = Array(byProduct, InShop, allProducts)
+    let {byProduct, inShop, allProducts} = createResultsElements()
+
+    let elements = Array(byProduct, inShop, allProducts)
     let datas = Array(cheapestByProduct, cheapestInShop, allProductsList)
 
     for(i=0; i<elements.length; i++)
@@ -210,64 +242,120 @@ function drawProducts(allProductsList, cheapestInShop, cheapestByProduct)
             for(shop in datas[i][item])
             {
                 let shopName = document.createElement('div')
-                let product_container = document.createElement('div')
-                product_container.className = "product_container"
+                let productContainer = document.createElement('div')
+                productContainer.className = "product_container"
                 shopName.className = "shop"
                 shopName.innerHTML = shop
 
                 for(product in datas[i][item][shop])
                 {
-                    let productName = document.createElement('div')
-                    let productLink = document.createElement('a')
-                    let price = document.createElement('div')
-                    let discount_price = document.createElement('div')
-                    let single_product = document.createElement('div')
+                    let singleProduct = document.createElement('div')
+                    singleProduct.className = "product"
 
-                    single_product.className = "product"
-                    productName.className = "product_name"
-                    price.className = "price"
-                    discount_price.className = "discount"
-
-                    if(datas[i][item][shop] == "Brak")
+                    if(datas[i][item][shop][product] == "Brak")
                     {
-                        productName.innerHTML = "Brak"
-                        price.innerHTML = '0 zł'
-                        discount_price.innerHTML = '0 zł'
-
-                        single_product.appendChild(productName)
-                        single_product.appendChild(price)
-                        single_product.appendChild(discount_price)
-                        product_container.appendChild(single_product)
-                        shopName.appendChild(product_container)
-                        itemName.appendChild(shopName)
-                        elements[i].appendChild(itemName)
-                        break
+                        var productName = createProductName("brak")
+                        var price = ''
                     }
-
-                    productLink.href = datas[i][item][shop][product]["link"]
-                    productLink.innerHTML = product
-                    productLink.setAttribute('target', '_blank')
-                    productName.appendChild(productLink)
-
-                    price.innerHTML = "Cena: " +datas[i][item][shop][product]["price"] + " zł"
-
-                    let discount = datas[i][item][shop][product]["discount_price"]
-                    if(datas[i][item][shop][product]["discount_price"] > 0)
-                        discount_price.innerHTML = "Zniżka: " + discount + " zł"
                     else
-                    discount_price.innerHTML = "Zniżka: Brak"
+                    {
+                        let url = datas[i][item][shop][product]["link"]
+                        var productName = createProductName(product, url)
 
-                    single_product.appendChild(productName)
-                    single_product.appendChild(price)
-                    single_product.appendChild(discount_price)
-                    product_container.appendChild(single_product)
-                    shopName.appendChild(product_container)
+                        let discount_price = datas[i][item][shop][product]["discount_price"]
+                        let regular_price = datas[i][item][shop][product]["price"]
+
+                        var price = createPrice(regular_price, discount_price)
+                    }
+                    productContainer.appendChild(connectProductElements(singleProduct, productName, price))
+                    shopName.appendChild(productContainer)
                     itemName.appendChild(shopName)
                     elements[i].appendChild(itemName)
                 }
             }
         }
-        elements[i].style.display = 'grid'
+        results.appendChild(elements[i])
     }
 }
 
+function connectProductElements(singleProduct, productName, price)
+{
+    singleProduct.appendChild(productName)
+    if(price) singleProduct.appendChild(price)
+    return singleProduct
+}
+
+function createPrice(regular_price, discount_price)
+{
+    let price = document.createElement('div')
+    let regular = document.createElement('span')
+    price.className = "price"
+    regular.className = "price"
+    regular.innerHTML = `${regular_price} zł`
+
+    if(discount_price > 0)
+    {
+        let discount = document.createElement('span')
+        discount.className = "price"
+        regular.classList.add("base")
+        discount.innerHTML = `${discount_price} zł `
+
+        price.appendChild(discount)
+    }
+    price.appendChild(regular)
+    return price
+}
+
+function createProductName(product, url = '')
+{
+    let productName = document.createElement('div')
+    productName.className = "product_name"
+
+    if(url)
+    {
+        productLink = createProductLink(url, product)
+        productName.appendChild(productLink)
+    }
+    else if (product == "brak")
+    {
+        productName.innerHTML = "Brak danego produktu w sklepie"
+        productName.classList.add("empty")
+    }
+    else
+        productName.innerHTML = product
+    return productName
+}
+
+function createProductLink(url, product)
+{
+    let productLink = document.createElement('a')
+    productLink.href = url
+    productLink.innerHTML = product
+    productLink.setAttribute('target', '_blank')
+
+    return productLink
+}
+
+function clearContainer(container)
+{
+    container.innerHTML = ''
+}
+
+function createResultsElements()
+{
+    let byProduct = document.createElement('div')
+    let inShop = document.createElement('div')
+    let allProducts = document.createElement('div')
+
+    byProduct.id = "cheapestByProduct"
+    byProduct.className = "products_list"
+    byProduct.innerHTML = "Najtańsze produkty"
+    inShop.id = "cheapestInShop"
+    inShop.className = "products_list"
+    inShop.innerHTML = "Najtańsze produkty w danym sklepie"
+    allProducts.id = "allProducts"
+    allProducts.className = "products_list"
+    allProducts.innerHTML = "Wszystkie produkty"
+
+    return {byProduct, inShop, allProducts}
+}
