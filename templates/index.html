@@ -1,23 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="../static/css/style.css">
     <title>Cebuletto - twoja porównywarka cen</title>
     <script src="../static/js/api.js"></script>
 </head>
-<body onload="createCheckbox()">
+<body>
 <header>Cebulett<img src="../static/css/logo.png"/ height="50" width="30"></header>
-<section id="shop_list">
-    <form onsubmit="get_values(); return false">
-        <div id="shops"></div>
-
-        <button type="button" id="add" onclick="addProduct()">Dodaj kolejny produkt</button>
-        <button type="button" id="del" onclick="delProduct()">Usun ostatni produkt</button>
+<section id="search">
+    <form id="searchForm" onsubmit="getValues(); return false;">
+        <button type="button" id="add">Dodaj kolejny produkt</button>
+        <button type="button" id="del">Usun ostatni produkt</button>
         <input type="submit" value="Cebuluj" id="find">
 
         <div id="products">
-            <input type="text" name="product_name" placeholder="Wpisz nazwe produktu" required>
+            <input type="text" class="products_item" name="product_name" placeholder="Wpisz nazwe produktu" required>
         </div>
     </form>
 

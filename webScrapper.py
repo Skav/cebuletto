@@ -1,5 +1,5 @@
 import json
-from collections import OrderedDict
+from CustomErrors import WebDriverNotFound
 from decimal import Decimal
 from queue import Queue
 from threading import Thread
@@ -16,7 +16,7 @@ class shopsInfo:
                 return list(shops.keys())
         except Exception as e:
             print("Loading file error: {}".format(e))
-            raise
+            raise e
 
 
 class webScrapper:
@@ -36,22 +36,18 @@ class webScrapper:
                 return json.load(f)
         except Exception as e:
             print("Loading file error: {}".format(e))
-            raise
+            pass
 
     def __set_browser_options(self, web_browser):
-        try:
-            if web_browser == "Chrome":
-                browser_options = webdriver.ChromeOptions()
-            elif web_browser == "Firefox":
-                browser_options = webdriver.FirefoxOptions()
-            else:
-                return False
+        if web_browser == "Chrome":
+            browser_options = webdriver.ChromeOptions()
+        elif web_browser == "Firefox":
+            browser_options = webdriver.FirefoxOptions()
+        else:
+            raise WebDriverNotFound
 
-            browser_options.add_argument('headless')
-            return browser_options
-        except Exception as e:
-            print("Set browser options error: {}".format(e))
-            raise
+        browser_options.add_argument('headless')
+        return browser_options
 
     def __add_tasks_to_jobs(self, shop_list=None):
         try:
@@ -61,7 +57,7 @@ class webScrapper:
                     self.__jobs.put('{};{}'.format(shop, product))
         except Exception as e:
             print("Error while adding jobs to queue: {}".format(e))
-            raise
+            pass
 
     def __get_products(self):
         try:
@@ -112,7 +108,7 @@ class webScrapper:
                     self.__jobs.task_done()
         except Exception as e:
             print("Error in main function: {}".format(e))
-            raise
+            pass
 
     def __no_product_in_shop(self, shop_products, product_name, shop):
         shop_products[product_name][shop] = {product_name: "Brak"}
@@ -120,16 +116,12 @@ class webScrapper:
         self.__jobs.task_done()
 
     def __set_web_driver(self):
-        try:
-            if self.__config["web_browser"] == "Chrome":
-                return webdriver.Chrome(options=self.__browser_options)
-            elif self.__config["web_browser"] == "Firefox":
-                return webdriver.Firefox(options=self.__browser_options)
-            else:
-                return False
-        except Exception as e:
-            print("Error while setting webdriver: {}".format(e))
-            raise
+        if self.__config["web_browser"] == "Chrome":
+            return webdriver.Chrome(options=self.__browser_options)
+        elif self.__config["web_browser"] == "Firefox":
+            return webdriver.Firefox(options=self.__browser_options)
+        else:
+            raise WebDriverNotFound
 
     def __get_page(self, url, driver):
         try:
@@ -137,7 +129,7 @@ class webScrapper:
             return BeautifulSoup(driver.page_source, 'html.parser')
         except Exception as e:
             print("Error while getting page: {}".format(e))
-            raise
+            pass
 
     def __get_products_list(self, soup, shop_struct):
         try:
@@ -150,7 +142,7 @@ class webScrapper:
                                                attrs=shop_struct["products_container"]["attrs"])
         except Exception as e:
             print("Error while getting products list: {}".format(e))
-            raise
+            pass
 
     def __get_name(self, product, product_name_keys, shop_struct):
         try:
@@ -168,7 +160,7 @@ class webScrapper:
             return name
         except Exception as e:
             print("Error while getting product name: {}".format(e))
-            raise
+            pass
 
     def __get_link(self, product, shop_struct, key):
         try:
@@ -185,7 +177,7 @@ class webScrapper:
             return link
         except Exception as e:
             print('Error while getting product url: {}'.format(e))
-            raise
+            pass
 
     def __get_price(self, product, shop_struct):
         try:
@@ -239,7 +231,7 @@ class webScrapper:
             return {"regular": str(regular_price), "discount": str(discount_price)}
         except Exception as e:
             print("Error while getting price: {}".format(e))
-            raise
+            pass
 
     def __wait_for_threads(self):
         try:
@@ -247,7 +239,7 @@ class webScrapper:
                 thread.join()
         except Exception as e:
             print("Error while starting threads: {}".format(e))
-            raise
+            pass
 
     def find_products(self, shop_list=None):
         try:
@@ -256,8 +248,11 @@ class webScrapper:
             self.__wait_for_threads()
 
             return self.__convert_to_dict()
-        except Exception:
-            raise
+        except WebDriverNotFound as e:
+            print("Web browser driver set in config file not found, please check your configuration file")
+            pass
+        except Exception as e:
+            raise e
 
     def __convert_to_dict(self):
         try:
@@ -279,7 +274,7 @@ class webScrapper:
             return products_list
         except Exception as e:
             print("Error while convert products to dict: {}".format(e))
-            raise
+            pass
 
     def sort_products_by_price(self, products_list, reverse=False):
         try:
@@ -289,8 +284,8 @@ class webScrapper:
                                                  key=lambda x: Decimal(x[1]["price"]) if not x[1] == "Brak" else x[1],
                                                  reverse=reverse)}
             return products_list
-        except Exception:
-            raise
+        except Exception as e:
+            raise e
 
     def __init_threads(self):
         try:
@@ -301,7 +296,7 @@ class webScrapper:
                 self.__threads[i].start()
         except Exception as e:
             print("Error while init a threads: {}".format(e))
-            raise
+            pass
 
     def __wait_for_threads(self):
         try:
@@ -309,11 +304,11 @@ class webScrapper:
                 thread.join()
         except Exception as e:
             print("Error while joining threads: {}".format(e))
-            raise
+            pass
 
     def get_shops_list(self):
         try:
             return list(self.__shops_info.keys())
         except Exception as e:
             print("Error while getting shops list: {}".format(e))
-            raise
+            pass
