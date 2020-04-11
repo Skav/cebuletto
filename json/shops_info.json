@@ -4,34 +4,48 @@
     "url": "https://www.mrcleaner.pl",
     "request_url": "https://www.mrcleaner.pl/s?q=",
     "separator": "+",
-    "has_domain_in_link": false
+    "has_domain_in_link": false,
+    "redirect_to_product_page": true
   },
   "detailer.pl":
   {
     "url": "https://www.detailer.pl",
     "request_url": "https://www.detailer.pl/sklep/pl/wyszukiwanie?s=",
     "separator": "+",
-    "has_domain_in_link": true
+    "has_domain_in_link": true,
+    "redirect_to_product_page": false
   },
   "automotivecare":
   {
     "url": "https://automotivecare.pl",
     "request_url": "https://automotivecare.pl/pl/searchquery/",
     "separator": "+",
-    "has_domain_in_link": false
+    "has_domain_in_link": false,
+    "redirect_to_product_page": false
   },
   "blyszczacajazda.pl":
   {
     "url": "https://blyszczacajazda.pl",
     "request_url": "https://blyszczacajazda.pl/pl/search.html?text=",
     "separator": "+",
-    "has_domain_in_link": false
+    "has_domain_in_link": false,
+    "redirect_to_product_page": true
   },
   "kaiser detailing":
   {
     "url": "https://kaiserdetailing.pl",
     "request_url": "https://kaiserdetailing.pl/pl/searchquery/",
     "separator": "+",
-    "has_domain_in_link": false
+    "has_domain_in_link": false,
+    "redirect_to_product_page": false
+  },
+  "car-house":
+  {
+    "url": "https://sklep.car-house.pl",
+    "request_url": "https://sklep.car-house.pl/?s=",
+    "extra_requests": "&post_type=product",
+    "separator": "+",
+    "has_domain_in_link": true,
+    "redirect_to_product_page": true
   }
 }

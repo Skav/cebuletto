@@ -1,5 +1,5 @@
 import json
-from CustomErrors import WebDriverNotFound
+from assets.CustomErrors import WebDriverNotFound
 from decimal import Decimal
 from queue import Queue
 from threading import Thread
@@ -11,7 +11,7 @@ class shopsInfo:
     @staticmethod
     def get_shops():
         try:
-            with open('shops_info.json') as f:
+            with open('../json/shops_info.json') as f:
                 shops = json.load(f)
                 return list(shops.keys())
         except Exception as e:
@@ -19,7 +19,7 @@ class shopsInfo:
             raise e
 
 
-class webScrapper:
+class WebScrapper:
     def __init__(self, products):
         self.__products_list = products
         self.__config = self.__load_json("config")
@@ -32,11 +32,11 @@ class webScrapper:
 
     def __load_json(self, name):
         try:
-            with open('{}.json'.format(name)) as f:
+            with open('../json/{}.json'.format(name)) as f:
                 return json.load(f)
         except Exception as e:
             print("Loading file error: {}".format(e))
-            pass
+            raise e
 
     def __set_browser_options(self, web_browser):
         if web_browser == "Chrome":
@@ -49,16 +49,6 @@ class webScrapper:
         browser_options.add_argument('headless')
         return browser_options
 
-    def __add_tasks_to_jobs(self, shop_list=None):
-        try:
-            shops = shop_list if shop_list else self.__shops_structure.keys()
-            for product in self.__products_list:
-                for shop in shops:
-                    self.__jobs.put('{};{}'.format(shop, product))
-        except Exception as e:
-            print("Error while adding jobs to queue: {}".format(e))
-            pass
-
     def __get_products(self):
         try:
             while not self.__jobs.empty():
@@ -67,7 +57,6 @@ class webScrapper:
                 search_data = self.__jobs.get().split(';')
                 shop = search_data[0].strip()
                 product_name = search_data[1].strip()
-
                 shop_products = {product_name: {}}
 
                 print(shop, " ", product_name)
@@ -77,18 +66,22 @@ class webScrapper:
                 product_separated_name = product_name.replace(" ", self.__shops_info[shop]["separator"])
                 url = "{}{}".format(self.__shops_info[shop]["request_url"], product_separated_name)
 
+                if "extra_requests" in self.__shops_info[shop]:
+                    url = url+"{}".format(self.__shops_info[shop]["extra_requests"])
+
                 driver = self.__set_web_driver()
-                if not driver:
-                    print("Webdriver does not exist!")
-                    return False
                 soup = self.__get_page(url, driver)
-
-
-                products = self.__get_products_list(soup, shop_struct)
+                products = self.__get_products_list(soup["source"], shop_struct)
 
                 if not products:
-                    self.__no_product_in_shop(shop_products, product_name, shop)
-                    return False
+                    results = self.__try_find_data_on_product_page(soup, shop, shop_struct, product_name_keys)
+                    if not results:
+                        self.__no_product_in_shop(shop_products, product_name, shop)
+                        continue
+                    shop_products[product_name][shop] = results
+                    self.__result.put(shop_products)
+                    self.__jobs.task_done()
+                    continue
 
                 for product in products:
                     name = self.__get_name(product, product_name_keys, shop_struct)
@@ -101,19 +94,39 @@ class webScrapper:
                     list_of_products[name] = {'price': price["regular"], 'discount_price': price["discount"], 'link': link}
 
                 if not list_of_products:
-                    self.__no_product_in_shop(shop_products, product_name, shop)
-                else:
-                    shop_products[product_name][shop] = list_of_products
-                    self.__result.put(shop_products)
-                    self.__jobs.task_done()
+                    list_of_products = self.__try_find_data_on_product_page(soup, shop, shop_struct, product_name_keys)
+                    if not list_of_products:
+                        self.__no_product_in_shop(shop_products, product_name, shop)
+                        continue
+                shop_products[product_name][shop] = list_of_products
+                self.__result.put(shop_products)
+                self.__jobs.task_done()
         except Exception as e:
             print("Error in main function: {}".format(e))
-            pass
+            raise e
+
+    def __try_find_data_on_product_page(self, soup, shop, shop_struct, product_name_keys):
+        if not self.__shops_info[shop]["redirect_to_product_page"]:
+            return False
+        product_page_struct = shop_struct["single_product_page"]
+
+        name = self.__get_name(soup["source"], product_name_keys, product_page_struct)
+        if not name:
+            return False
+
+        price = self.__get_price(soup["source"], product_page_struct)
+        link = soup["url"]
+
+        return {name: {'price': price["regular"], 'discount_price': price["discount"], 'link': link}}
+
 
     def __no_product_in_shop(self, shop_products, product_name, shop):
         shop_products[product_name][shop] = {product_name: "Brak"}
         self.__result.put(shop_products)
         self.__jobs.task_done()
+
+    def __product_not_available(self):
+        return {"regular": "0", "discount": "0"}
 
     def __set_web_driver(self):
         if self.__config["web_browser"] == "Chrome":
@@ -126,10 +139,10 @@ class webScrapper:
     def __get_page(self, url, driver):
         try:
             driver.get(url)
-            return BeautifulSoup(driver.page_source, 'html.parser')
+            return {"url": driver.current_url, "source": BeautifulSoup(driver.page_source, 'html.parser')}
         except Exception as e:
             print("Error while getting page: {}".format(e))
-            pass
+            raise e
 
     def __get_products_list(self, soup, shop_struct):
         try:
@@ -142,12 +155,15 @@ class webScrapper:
                                                attrs=shop_struct["products_container"]["attrs"])
         except Exception as e:
             print("Error while getting products list: {}".format(e))
-            pass
+            raise e
 
     def __get_name(self, product, product_name_keys, shop_struct):
         try:
             name_container = product.find(shop_struct["product_name"]["type"],
                                           attrs=shop_struct["product_name"]["attrs"])
+
+            if not name_container:
+                return False
 
             if "child_type" in shop_struct["product_name"].keys():
                 name_container = name_container.find(shop_struct["product_name"]["child_type"],
@@ -155,12 +171,12 @@ class webScrapper:
 
             name = name_container.text if name_container.text else name_container['title']
 
-            if not all(x in name.lower() for x in product_name_keys):
+            if not all(x.lower() in name.lower() for x in product_name_keys):
                 return False
             return name
         except Exception as e:
             print("Error while getting product name: {}".format(e))
-            pass
+            raise e
 
     def __get_link(self, product, shop_struct, key):
         try:
@@ -177,7 +193,7 @@ class webScrapper:
             return link
         except Exception as e:
             print('Error while getting product url: {}'.format(e))
-            pass
+            raise e
 
     def __get_price(self, product, shop_struct):
         try:
@@ -185,33 +201,75 @@ class webScrapper:
             if "product_price_container" in shop_struct.keys():
                 price_div = product.find(shop_struct["product_price_container"]["type"],
                                          attrs=shop_struct["product_price_container"]["attrs"])
+
+                if not price_div:
+                    return self.__product_not_available()
+
                 regular_price = price_div.find(shop_struct["product_price"]["type"],
                                                attrs=shop_struct["product_price"]["attrs"])
+                if regular_price and "child_type" in shop_struct["product_price"]:
+                    regular_price = regular_price.find(shop_struct["product_price"]["child_type"],
+                                                       attrs=shop_struct["product_price"]["child_attrs"])
 
                 regular_price = regular_price.text if regular_price else None
 
                 if not regular_price and "second_regular_price" in shop_struct.keys():
                     regular_price = price_div.find(shop_struct["second_regular_price"]["type"],
-                                                   attrs=shop_struct["second_regular_price"]["attrs"]).text
+                                                   attrs=shop_struct["second_regular_price"]["attrs"])
 
-                if "product_discount_price" in shop_struct.keys():
-                    if price_div.find(shop_struct["product_discount_price"]["type"],
-                                      attrs=shop_struct["product_discount_price"]["attrs"]):
-                        discount_price = price_div.find(shop_struct["product_discount_price"]["type"],
-                                                        attrs=shop_struct["product_discount_price"]["attrs"]).text
+                    if "child_type" in shop_struct["second_regular_price"]:
+                        regular_price = regular_price.find(shop_struct["second_regular_price"]["child_type"],
+                                                           attrs=shop_struct["second_regular_price"]["child_attrs"]).text
+                    else:
+                        regular_price = regular_price.text
+
+                if "discount_price" in shop_struct.keys():
+                    if price_div.find(shop_struct["discount_price"]["type"],
+                                      attrs=shop_struct["discount_price"]["attrs"]):
+                        discount_price = price_div.find(shop_struct["discount_price"]["type"],
+                                                        attrs=shop_struct["discount_price"]["attrs"])
+
+                        if "child_type" in shop_struct["discount_price"]:
+                            discount_price = discount_price.find(shop_struct["discount_price"]["child_type"],
+                                                                 attrs=shop_struct["discount_price"]["child_attrs"]).text
+                        else:
+                            discount_price = discount_price.text
             else:
                 regular_price = product.find(shop_struct["product_price"]["type"],
-                                             attrs=shop_struct["product_price"]["attrs"]).text
+                                             attrs=shop_struct["product_price"]["attrs"])
+
+                if "child_type" in shop_struct["product_price"]:
+                    regular_price = regular_price.find(shop_struct["product_price"]["child_type"],
+                                                       attrs=shop_struct["product_price"]["child_attrs"])
+
+                regular_price = regular_price.text if regular_price else None
 
                 if not regular_price and "second_regular_price" in shop_struct.keys():
                     regular_price = product.find(shop_struct["second_regular_price"]["type"],
-                                                 attrs=shop_struct["second_regular_price"]["attrs"]).text
+                                                 attrs=shop_struct["second_regular_price"]["attrs"])
 
-                if "product_discount_price" in shop_struct.keys():
-                    if product.find(shop_struct["product_discount_price"]["type"],
-                                    attrs=shop_struct["product_discount_price"]["attrs"]):
-                        discount_price = product.find(shop_struct["product_discount_price"]["type"],
-                                                      attrs=shop_struct["product_discount_price"]["attrs"]).text
+                    if not regular_price:
+                        return self.__product_not_available()
+
+                    if "child_type" in shop_struct["second_regular_price"]:
+                        regular_price = regular_price.find(shop_struct["second_regular_price"]["child_type"],
+                                                     attrs=shop_struct["second_regular_price"]["child_attrs"]).text
+                    else:
+                        regular_price = regular_price.text
+
+
+                if "discount_price" in shop_struct.keys():
+                    if product.find(shop_struct["discount_price"]["type"],
+                                    attrs=shop_struct["discount_price"]["attrs"]):
+                        discount_price = product.find(shop_struct["discount_price"]["type"],
+                                                      attrs=shop_struct["discount_price"]["attrs"])
+
+                        if "child_type" in shop_struct["discount_price"]:
+                            discount_price = discount_price.find(shop_struct["discount_price"]["type"],
+                                                                 attrs=shop_struct["discount_price"]["attrs"]).text
+                        else:
+                            discount_price = discount_price.text
+
 
             regular_price = sub('[^\d+.,]', '', regular_price).replace(',', '.')
             discount_price = sub('[^\d+.,]', '', discount_price).replace(',', '.')
@@ -231,15 +289,7 @@ class webScrapper:
             return {"regular": str(regular_price), "discount": str(discount_price)}
         except Exception as e:
             print("Error while getting price: {}".format(e))
-            pass
-
-    def __wait_for_threads(self):
-        try:
-            for thread in self.__threads:
-                thread.join()
-        except Exception as e:
-            print("Error while starting threads: {}".format(e))
-            pass
+            raise e
 
     def find_products(self, shop_list=None):
         try:
@@ -250,8 +300,26 @@ class webScrapper:
             return self.__convert_to_dict()
         except WebDriverNotFound as e:
             print("Web browser driver set in config file not found, please check your configuration file")
-            pass
+            raise e
         except Exception as e:
+            raise e
+
+    def __add_tasks_to_jobs(self, shop_list=None):
+        try:
+            shops = shop_list if shop_list else self.__shops_structure.keys()
+            for product in self.__products_list:
+                for shop in shops:
+                    self.__jobs.put('{};{}'.format(shop, product))
+        except Exception as e:
+            print("Error while adding jobs to queue: {}".format(e))
+            raise e
+
+    def __wait_for_threads(self):
+        try:
+            for thread in self.__threads:
+                thread.join()
+        except Exception as e:
+            print("Error while starting threads: {}".format(e))
             raise e
 
     def __convert_to_dict(self):
@@ -274,7 +342,7 @@ class webScrapper:
             return products_list
         except Exception as e:
             print("Error while convert products to dict: {}".format(e))
-            pass
+            raise e
 
     def sort_products_by_price(self, products_list, reverse=False):
         try:
@@ -296,7 +364,7 @@ class webScrapper:
                 self.__threads[i].start()
         except Exception as e:
             print("Error while init a threads: {}".format(e))
-            pass
+            raise e
 
     def __wait_for_threads(self):
         try:
@@ -304,11 +372,11 @@ class webScrapper:
                 thread.join()
         except Exception as e:
             print("Error while joining threads: {}".format(e))
-            pass
+            raise e
 
     def get_shops_list(self):
         try:
             return list(self.__shops_info.keys())
         except Exception as e:
             print("Error while getting shops list: {}".format(e))
-            pass
+            raise e

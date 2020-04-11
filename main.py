@@ -1,6 +1,5 @@
-import json
 from datetime import datetime
-from webScrapper import webScrapper
+from assets.WebScrapper import WebScrapper
 
 def main():
     print("Produkty oddzielaj ';' jezeli jest ich wiecej niz 1")
@@ -8,7 +7,7 @@ def main():
     product_name = product_name.split(';')
 
     start = datetime.now()
-    scrapper = webScrapper(product_name)
+    scrapper = WebScrapper(product_name)
     shop_list = scrapper.get_shops_list()
     products_list = scrapper.find_products(shop_list)
     # with open('data.json', ) as f:

@@ -284,6 +284,10 @@ input.products_item.empty{
     color: rgb(206, 134, 0)
 }
 
+.price.na{
+    color:red
+}
+
 .price.base{
     color: rgb(104, 104, 104);
     text-decoration: line-through;
@@ -299,7 +303,6 @@ input.products_item.empty{
     {
         grid-template-columns: repeat(2 ,1fr);
     }
-    #
 }
 
 @media(max-width: 550px)

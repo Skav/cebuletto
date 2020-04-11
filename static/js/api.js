@@ -409,6 +409,14 @@ function createPrice(regular_price, discount_price)
     let regular = document.createElement('span');
     price.className = "price";
     regular.className = "price";
+
+    if(regular_price == 0 && discount_price == 0)
+    {
+        regular.classList.add("na");
+        regular.innerHTML = "Produkt niedostepny";
+        price.appendChild(regular)
+        return price;
+    }
     regular.innerHTML = `${regular_price} zł`;
 
     if(discount_price > 0)

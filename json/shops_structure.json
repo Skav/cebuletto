@@ -56,7 +56,7 @@
       }
     },
 
-    "product_discount_price":
+    "discount_price":
     {
       "type": "span",
       "attrs":
@@ -71,6 +71,53 @@
       "attrs":
       {
         "data-type": "product-url"
+      }
+    },
+
+    "single_product_page":
+    {
+      "product_name":
+      {
+        "type": "span",
+        "attrs":
+        {
+          "itemprop": "name"
+        }
+      },
+      "product_price_container":
+      {
+        "type": "div",
+        "attrs":
+        {
+          "class": "product-price-row"
+        }
+      },
+      "product_price":
+      {
+        "type": "span",
+        "attrs":
+        {
+          "class": "price",
+          "data-type": "product-price"
+        }
+      },
+      "second_regular_price":
+      {
+        "type": "span",
+        "attrs":
+        {
+          "class": "base-price",
+          "data-type": "product-base-price"
+        }
+      },
+      "discount_price":
+      {
+        "type": "span",
+        "attrs":
+        {
+          "class": "price new-price",
+          "data-type": "product-price"
+        }
       }
     }
   },
@@ -175,7 +222,7 @@
       "type": "em",
       "attrs": {}
     },
-    "product_discount_price":
+    "discount_price":
     {
       "type": "del",
       "attrs": {}
@@ -240,7 +287,7 @@
         "class": "price"
       }
     },
-    "product_discount_price":
+    "discount_price":
     {
       "type": "span",
       "attrs":
@@ -254,6 +301,51 @@
       "attrs":
       {
         "class":"product-name"
+      }
+    },
+    "single_product_page":
+    {
+      "product_name":
+      {
+        "type": "div",
+        "attrs":
+        {
+          "class": "projector_navigation"
+        },
+        "child_type": "h1",
+        "child_attrs": {}
+      },
+      "product_price_container":
+      {
+        "type": "div",
+        "attrs":
+        {
+          "id": "projector_price_value_wrapper"
+        }
+      },
+      "product_price":
+      {
+        "type": "del",
+        "attrs":
+        {
+          "id": "projector_price_maxprice"
+        }
+      },
+      "second_regular_price":
+      {
+        "type": "strong",
+        "attrs":
+        {
+          "id": "projector_price_value"
+        }
+      },
+      "discount_price":
+      {
+        "type": "strong",
+        "attrs":
+        {
+          "id": "projector_price_value"
+        }
       }
     }
   },
@@ -318,6 +410,129 @@
       "attrs":
       {
         "class": "prodname f-row"
+      }
+    }
+  },
+
+  "car-house":
+  {
+    "all_products_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "mf-shop-content"
+      }
+    },
+    "products_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "product-inner clearfix"
+      }
+    },
+    "product_name":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "mf-product-content"
+      },
+      "child_type": "a",
+      "child_attrs":{}
+    },
+    "product_price_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "mf-product-price-box"
+      }
+    },
+    "product_price":
+    {
+      "type": "del",
+      "attrs":{},
+      "child_type": "span",
+      "child_attrs":
+      {
+        "class": "woocommerce-Price-amount amount"
+      }
+    },
+    "second_regular_price":
+    {
+      "type": "span",
+      "attrs":
+      {
+        "class": "woocommerce-Price-amount amount"
+      }
+    },
+    "discount_price":
+    {
+      "type": "ins",
+      "attrs":{},
+      "child_type": "span",
+      "child_attrs":
+      {
+        "class": "woocommerce-Price-amount amount"
+      }
+    },
+    "product_url":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "mf-product-content"
+      },
+      "child_type": "a",
+      "child_attrs": {}
+    },
+    "single_product_page":
+    {
+      "product_name":
+      {
+        "type": "h1",
+        "attrs":
+        {
+          "class": "product_title entry-title"
+        }
+      },
+      "product_price_container":
+      {
+        "type": "p",
+        "attrs":
+        {
+          "class": "price"
+        }
+      },
+      "product_price":
+      {
+        "type": "del",
+        "attrs":{},
+        "child_type": "span",
+        "child_attrs":
+        {
+          "class": "woocommerce-Price-amount amount"
+        }
+      },
+      "second_regular_price":
+      {
+        "type": "span",
+        "attrs":
+        {
+          "class": "woocommerce-Price-amount amount"
+        }
+      },
+      "discount_price":
+      {
+        "type": "ins",
+        "attrs":{},
+        "child_type": "span",
+        "child_attrs":
+        {
+          "class": "woocommerce-Price-amount amount"
+        }
       }
     }
   }

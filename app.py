@@ -1,11 +1,17 @@
-import json
-from CustomErrors import WebDriverNotFound
 from flask import Flask, request, make_response, render_template
 from flask_restful import Api
 from flask_cors import CORS
 from flask.json import jsonify
-from webScrapper import shopsInfo, webScrapper
-from serializer import Serializer
+from assets.WebScrapper import shopsInfo, WebScrapper
+from assets.serializer import Serializer
+from assets.CustomErrors import WebDriverNotFound
+
+'''
+TODO:
+Add not available product when is annotation on web page
+Clean code (again)
+Find bugs and repair it 
+'''
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
@@ -34,19 +40,18 @@ def get_products():
             serialized_data = serializer.get_data()
             products_list = serialized_data["products"]
             shops_list = serialized_data["shops"]
-            scrapper = webScrapper(products_list)
-            #products = scrapper.find_products(shops_list)
+            scrapper = WebScrapper(products_list)
+            products = scrapper.find_products(shops_list)
 
             #TESTING FILE - TO DELETE IN PRODUCTION VERSION!
-            with open('data.json') as f:
-                products = json.load(f)
+            # with open('data.json') as f:
+            #     products = json.load(f)
             results = scrapper.sort_products_by_price(products)
             return make_response(jsonify(results), 200)
         return make_response(jsonify({"Error": serializer.get_errors()}), 400)
 
     except WebDriverNotFound:
         return make_response(jsonify({"Error": "Server configuration error"}), 500)
-    except Exception as e:
-        print(e)
+    except Exception:
         return make_response(jsonify({"Error": "Internal server error"}), 500)
 

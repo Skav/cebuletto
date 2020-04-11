@@ -1,3 +1,4 @@
 .idea/
 ghostdriver.log
 venv/
+.vscode/
