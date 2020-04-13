@@ -73,6 +73,16 @@
         "data-type": "product-url"
       }
     },
+    "available":
+    {
+      "type": "span",
+      "attrs":
+      {
+        "class": "product-ias",
+        "data-type": "field-ias"
+      },
+      "not_available_message": "Niedostępny"
+    },
 
     "single_product_page":
     {
@@ -118,6 +128,15 @@
           "class": "price new-price",
           "data-type": "product-price"
         }
+      },
+      "available":
+      {
+        "type": "div",
+        "attrs":
+        {
+          "class": "product-unavailable-label"
+        },
+        "not_available_message": "Pozycja niedostępna"
       }
     }
   },
@@ -175,6 +194,15 @@
       },
       "child_type": "a",
       "child_attrs": {}
+    },
+    "available":
+    {
+      "type": "span",
+      "attrs":
+      {
+        "class": "badge product-unavailable"
+      },
+      "not_available_message": "Wyprzedany"
     }
   },
 
@@ -234,6 +262,17 @@
       {
         "class": "prodname f-row"
       }
+    },
+    "available":
+    {
+      "type": "button",
+      "attrs":
+      {
+        "class": "availability-notifier-btn btn btn-red"
+      },
+      "child_type": "span",
+      "child_attrs": {},
+      "not_available_message": "Powiadom o dostępności"
     }
   },
 
@@ -346,6 +385,15 @@
         {
           "id": "projector_price_value"
         }
+      },
+      "available":
+      {
+        "type": "span",
+        "attrs":
+        {
+          "id": "projector_status_description"
+        },
+        "not_available_message": "Produkt niedostępny w magazynie"
       }
     }
   },
@@ -411,6 +459,17 @@
       {
         "class": "prodname f-row"
       }
+    },
+    "available":
+    {
+      "type": "button",
+      "attrs":
+      {
+        "class": "availability-notifier-btn btn btn-red"
+      },
+      "child_type": "span",
+      "child_attrs": {},
+      "not_available_message": "Powiadom o dostępności"
     }
   },
 
@@ -488,6 +547,15 @@
       "child_type": "a",
       "child_attrs": {}
     },
+    "available":
+    {
+      "type": "span",
+      "attrs":
+      {
+        "class": "add-to-cart-text"
+      },
+      "not_available_message": "Zapytaj o produkt"
+    },
     "single_product_page":
     {
       "product_name":
@@ -533,6 +601,15 @@
         {
           "class": "woocommerce-Price-amount amount"
         }
+      },
+      "available":
+      {
+        "type": "span",
+        "attrs":
+        {
+          "class": "out-of-stock ribbon"
+        },
+        "not_available_message": "Obecnie brak na stanie"
       }
     }
   }

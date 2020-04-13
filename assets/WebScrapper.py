@@ -11,7 +11,7 @@ class shopsInfo:
     @staticmethod
     def get_shops():
         try:
-            with open('../json/shops_info.json') as f:
+            with open('json/shops_info.json') as f:
                 shops = json.load(f)
                 return list(shops.keys())
         except Exception as e:
@@ -32,7 +32,7 @@ class WebScrapper:
 
     def __load_json(self, name):
         try:
-            with open('../json/{}.json'.format(name)) as f:
+            with open('json/{}.json'.format(name)) as f:
                 return json.load(f)
         except Exception as e:
             print("Loading file error: {}".format(e))
@@ -68,7 +68,6 @@ class WebScrapper:
 
                 if "extra_requests" in self.__shops_info[shop]:
                     url = url+"{}".format(self.__shops_info[shop]["extra_requests"])
-
                 driver = self.__set_web_driver()
                 soup = self.__get_page(url, driver)
                 products = self.__get_products_list(soup["source"], shop_struct)
@@ -90,8 +89,13 @@ class WebScrapper:
 
                     link = self.__get_link(product, shop_struct, shop)
                     price = self.__get_price(product, shop_struct)
+                    available = False if not price else self.__is_product_available(product, shop_struct)
 
-                    list_of_products[name] = {'price': price["regular"], 'discount_price': price["discount"], 'link': link}
+                    if not price:
+                        price = {"regular": "0", "discount": "0"}
+
+                    list_of_products[name] = {'price': price["regular"], 'discount_price': price["discount"],
+                                              'link': link, 'available': available}
 
                 if not list_of_products:
                     list_of_products = self.__try_find_data_on_product_page(soup, shop, shop_struct, product_name_keys)
@@ -116,8 +120,13 @@ class WebScrapper:
 
         price = self.__get_price(soup["source"], product_page_struct)
         link = soup["url"]
+        available = False if not price else self.__is_product_available(soup["source"], product_page_struct)
 
-        return {name: {'price': price["regular"], 'discount_price': price["discount"], 'link': link}}
+        if not price:
+            price = {"regular": "0", "discount": "0"}
+
+        return {name: {'price': price["regular"], 'discount_price': price["discount"], 'link': link,
+                       'available': available}}
 
 
     def __no_product_in_shop(self, shop_products, product_name, shop):
@@ -125,8 +134,21 @@ class WebScrapper:
         self.__result.put(shop_products)
         self.__jobs.task_done()
 
-    def __product_not_available(self):
-        return {"regular": "0", "discount": "0"}
+    def __is_product_available(self, product, shop_struct):
+        if "available" in shop_struct.keys():
+            product_available = product.find(shop_struct["available"]["type"],
+                                             attrs=shop_struct["available"]["attrs"])
+            if not product_available:
+                return True
+
+            if "not_available_message" in shop_struct["available"].keys():
+                if "child_type" in shop_struct["available"].keys():
+                    product_available = product_available.find(shop_struct["available"]["child_type"],
+                                                               attrs=shop_struct["available"]["child_attrs"])
+
+                if product_available.text.lower() == shop_struct["available"]["not_available_message"].lower():
+                    return False
+        return True
 
     def __set_web_driver(self):
         if self.__config["web_browser"] == "Chrome":
@@ -203,7 +225,7 @@ class WebScrapper:
                                          attrs=shop_struct["product_price_container"]["attrs"])
 
                 if not price_div:
-                    return self.__product_not_available()
+                    return False
 
                 regular_price = price_div.find(shop_struct["product_price"]["type"],
                                                attrs=shop_struct["product_price"]["attrs"])
@@ -249,14 +271,12 @@ class WebScrapper:
                                                  attrs=shop_struct["second_regular_price"]["attrs"])
 
                     if not regular_price:
-                        return self.__product_not_available()
-
-                    if "child_type" in shop_struct["second_regular_price"]:
+                        return False
+                    elif "child_type" in shop_struct["second_regular_price"]:
                         regular_price = regular_price.find(shop_struct["second_regular_price"]["child_type"],
                                                      attrs=shop_struct["second_regular_price"]["child_attrs"]).text
                     else:
                         regular_price = regular_price.text
-
 
                 if "discount_price" in shop_struct.keys():
                     if product.find(shop_struct["discount_price"]["type"],
@@ -269,7 +289,6 @@ class WebScrapper:
                                                                  attrs=shop_struct["discount_price"]["attrs"]).text
                         else:
                             discount_price = discount_price.text
-
 
             regular_price = sub('[^\d+.,]', '', regular_price).replace(',', '.')
             discount_price = sub('[^\d+.,]', '', discount_price).replace(',', '.')

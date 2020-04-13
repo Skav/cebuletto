@@ -12,7 +12,7 @@ async function getData(endpoint, options=null)
     const response = await fetch(url+endpoint, options)
     const data = await response.json()
 
-    if(response.status == 500)
+    if(response.status >= 500 && response.status <= 599)
     {
         throw {
             name: "InternalServerError",
@@ -242,7 +242,7 @@ function findCheapestInShop(jsonData)
                     let price = parseFloat(jsonData[product][shop][item]["price"]);
                     let discount_price = parseFloat(jsonData[product][shop][item]["discount_price"]);
 
-                    if(price < final_price && discount_price < final_price || final_price == 0)
+                    if(price < final_price && discount_price < final_price)
                     {
                         if (discount_price > 0 && discount_price < price)
                             final_price = discount_price;
@@ -272,25 +272,25 @@ function findCheapestInShop(jsonData)
 
 function findCheapestByProduct(data, jsonData)
 {
-    let cheapest_value = Number.MAX_VALUE;
     let cheapest_product = {};
 
     for(product in data)
     {
+        let cheapest_value = Number.MAX_VALUE;
         cheapest_product[product] = {};
         for(shop in data[product])
         {
-            cheapest_product[product][shop] = {};
             if(!isEmpty(data[product][shop]))
             {
                 let item = Object.keys(data[product][shop]);
                 if(isLower(data[product][shop], cheapest_value))
                 {
+                    cheapest_value = data[product][shop][item]["price"];
                     cheapest_product[product] = {};
                     cheapest_product[product][shop] = {};
                     cheapest_product[product][shop][item] = jsonData[product][shop][item];
                 }
-                else if (data[product][shop][item] == "Brak")
+                else if (data[product][shop][item] == "Brak" && cheapest_value == Number.MAX_VALUE)
                 {
                     cheapest_product[product] = {};
                     cheapest_product[product][shop] = {};
@@ -342,20 +342,20 @@ function drawProducts(allProductsList, cheapestInShop, cheapestByProduct)
                     }
                     else
                     {
-                        let url = datas[i][item][shop][product]["link"];
-                        singleProduct.setAttribute('data-url', url);
-                        var productName = createProductName(product);
-
                         let discount_price = datas[i][item][shop][product]["discount_price"];
                         let regular_price = datas[i][item][shop][product]["price"];
+                        let available = datas[i][item][shop][product]["available"];
+                        let url = datas[i][item][shop][product]["link"];
 
+                        singleProduct.setAttribute('data-url', url);
+                        var productName = createProductName(product, available);
                         var price = createPrice(regular_price, discount_price);
                     }
                     productContainer.appendChild(connectProductElements(singleProduct, productName, price));
                     shopName.appendChild(productContainer);
-                    itemName.appendChild(shopName);
-                    elements[i].appendChild(itemName);
                 }
+                itemName.appendChild(shopName);
+                elements[i].appendChild(itemName);
             }
         }
         results.appendChild(elements[i])
@@ -388,7 +388,7 @@ function createResultsElements()
     return {byProduct, inShop, allProducts};
 }
 
-function createProductName(product)
+function createProductName(product, available)
 {
     let productName = document.createElement('div');
     productName.className = "product_name";
@@ -397,9 +397,17 @@ function createProductName(product)
     {
         productName.innerHTML = "Brak danego produktu w sklepie";
         productName.classList.add("empty");
+        return productName;
     }
-    else
-        productName.innerHTML = product;
+
+    productName.innerHTML = product;
+    if(!available)
+    {
+        let notAvailable = document.createElement("span");
+        notAvailable.className = "not_available";
+        notAvailable.innerHTML = "(Niedostępny)";
+        productName.appendChild(notAvailable)
+    }
     return productName;
 }
 
@@ -407,18 +415,16 @@ function createPrice(regular_price, discount_price)
 {
     let price = document.createElement('div');
     let regular = document.createElement('span');
-    price.className = "price";
+    price.className = "price_div";
     regular.className = "price";
 
     if(regular_price == 0 && discount_price == 0)
     {
         regular.classList.add("na");
-        regular.innerHTML = "Produkt niedostepny";
+        regular.innerHTML = "Brak ceny";
         price.appendChild(regular)
         return price;
     }
-    regular.innerHTML = `${regular_price} zł`;
-
     if(discount_price > 0)
     {
         let discount = document.createElement('span');
@@ -428,6 +434,8 @@ function createPrice(regular_price, discount_price)
 
         price.appendChild(discount);
     }
+
+    regular.innerHTML = `${regular_price} zł`;
     price.appendChild(regular);
     return price;
 }
@@ -463,7 +471,7 @@ function isEmpty(obj){
 function isLower(obj, value)
 {
     let key = Object.keys(obj);
-    return obj[key]["price"] < value;
+    return parseFloat(obj[key]["price"]) < parseFloat(value);
 }
 
 function createErrorDiv(message)

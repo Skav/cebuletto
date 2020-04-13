@@ -1,5 +1,6 @@
 body{
     background-color: #121212;
+    font-family: Arial, Helvetica, sans-serif;
 }
 
 header{
@@ -259,6 +260,11 @@ input.products_item.empty{
     padding: 10px;
 }
 
+#allProducts > .item > .shop > .product_container > .product
+{
+    padding: 15px 10px 15px 10px;
+}
+
 .product.empty:hover
 {
     cursor: default;
@@ -273,24 +279,44 @@ input.products_item.empty{
 }
 
 .product_name{
-    color: white;
+    color: rgb(230, 230, 230);
 }
 
 .product_name.empty{
     color: rgb(141, 141, 141);
 }
 
+.price_div
+{
+    text-align: center;
+}
+
 .price{
-    color: rgb(206, 134, 0)
+    color: rgb(206, 134, 0);
 }
 
 .price.na{
-    color:red
+    color: rgb(141, 141, 141);
+    position: relative;
+    bottom: 0;
+}
+
+.not_available{
+    font-size: 1rem;
+    color:red;
+    padding-left: 0.5rem;
 }
 
 .price.base{
     color: rgb(104, 104, 104);
     text-decoration: line-through;
+}
+
+@media(min-width: 1230px)
+{
+    .price_div{
+        text-align: left;
+    }
 }
 
 @media(max-width: 750px)

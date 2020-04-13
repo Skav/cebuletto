@@ -1,3 +1,5 @@
+import json
+
 from flask import Flask, request, make_response, render_template
 from flask_restful import Api
 from flask_cors import CORS
@@ -41,17 +43,18 @@ def get_products():
             products_list = serialized_data["products"]
             shops_list = serialized_data["shops"]
             scrapper = WebScrapper(products_list)
-            products = scrapper.find_products(shops_list)
+            #products = scrapper.find_products(shops_list)
 
             #TESTING FILE - TO DELETE IN PRODUCTION VERSION!
-            # with open('data.json') as f:
-            #     products = json.load(f)
+            with open('json/data.json') as f:
+                products = json.load(f)
             results = scrapper.sort_products_by_price(products)
             return make_response(jsonify(results), 200)
         return make_response(jsonify({"Error": serializer.get_errors()}), 400)
 
     except WebDriverNotFound:
         return make_response(jsonify({"Error": "Server configuration error"}), 500)
-    except Exception:
+    except Exception as e:
+        raise e
         return make_response(jsonify({"Error": "Internal server error"}), 500)
 
