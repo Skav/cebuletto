@@ -1,3 +1,7 @@
+:root{
+    font-size: 16px;
+}
+
 body{
     background-color: #121212;
     font-family: Arial, Helvetica, sans-serif;
@@ -148,18 +152,11 @@ a:link, a:visited{
     border-color: rgb(206, 134, 0);
 }
 
-#allProducts > .item > .shop > .product_container > .product{
-    border-bottom: 1px solid #444;
-    padding: 4px 0px 4px 0px;
+#cheapestByProduct > .item > .shop > .product_container > .product{
+    padding: 10px;
+    border: none;
 }
 
-#allProducts > .item > .shop > .product_container > .product:nth-last-child(-n+1){
-    margin-bottom: 0px;
-}
-
-#allProducts > .item > .shop > .product_container > .product:nth-child(1){
-    border-top: 1px solid #444;
-}
 
 #error{
     color: red;
@@ -239,6 +236,7 @@ input.products_item.empty{
 
 .shop{
     display: grid;
+    text-align: left;
     grid-template-columns: 100%;
     grid-template-rows: auto;
     background-color: rgb(255, 255, 255, 0.035);
@@ -257,12 +255,18 @@ input.products_item.empty{
     grid-template-columns: 70% 30%;
     grid-template-rows: auto;
     margin-left: -5px;
-    padding: 10px;
+    border-bottom: 1px solid #444;
+    padding: 15px 10px 15px 10px;
 }
 
-#allProducts > .item > .shop > .product_container > .product
+.product_container > .product:nth-child(-n+1){
+    border-top: 1px solid #444;
+}
+
+.product_container > .product:nth-last-child(-n+1)
 {
-    padding: 15px 10px 15px 10px;
+    border-radius: 0px 0px 10px 10px;
+    margin-bottom: 0px;
 }
 
 .product.empty:hover
@@ -302,9 +306,9 @@ input.products_item.empty{
 }
 
 .not_available{
-    font-size: 1rem;
+    font-size: 0.8em;
     color:red;
-    padding-left: 0.5rem;
+    padding-left: 0.5em;
 }
 
 .price.base{

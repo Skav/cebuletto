@@ -325,9 +325,26 @@ function drawProducts(allProductsList, cheapestInShop, cheapestByProduct)
             {
                 let shopName = document.createElement('div');
                 let productContainer = document.createElement('div');
-                productContainer.className = "product_container";
                 shopName.className = "shop";
                 shopName.innerHTML = shop;
+                productContainer.className = "product_container";
+
+                if(i == 1)
+                {
+                    if(typeof(shopContainer) === 'undefined')
+                        var shopContainer = {};
+
+                    if(typeof(shopContainer[shop]) === 'undefined')
+                    {
+                        shopContainer[shop] = shopName;
+
+                        if(typeof(shopProductsContainer) === 'undefined')
+                            var shopProductsContainer = {};
+
+                        if(typeof(shopProductsContainer[shop]) === 'undefined')
+                            shopProductsContainer[shop] = productContainer;
+                    }
+                }
 
                 for(product in datas[i][item][shop])
                 {
@@ -337,7 +354,7 @@ function drawProducts(allProductsList, cheapestInShop, cheapestByProduct)
                     if(datas[i][item][shop][product] == "Brak")
                     {
                         singleProduct.classList.add("empty");
-                        var productName = createProductName();
+                        var productName = createEmptyProductName(product);
                         var price = '';
                     }
                     else
@@ -351,18 +368,49 @@ function drawProducts(allProductsList, cheapestInShop, cheapestByProduct)
                         var productName = createProductName(product, available);
                         var price = createPrice(regular_price, discount_price);
                     }
-                    productContainer.appendChild(connectProductElements(singleProduct, productName, price));
-                    shopName.appendChild(productContainer);
+                    if(i != 1)
+                    {
+                        productContainer.appendChild(connectProductElements(singleProduct, productName, price));
+                        shopName.appendChild(productContainer);
+                    }
+                    else
+                    {
+                        shopProductsContainer[shop].appendChild(connectProductElements(singleProduct, productName, price));
+                        shopContainer[shop].appendChild(shopProductsContainer[shop]);
+                    }
                 }
-                itemName.appendChild(shopName);
-                elements[i].appendChild(itemName);
+                if(i != 1)
+                {
+                    itemName.appendChild(shopName);
+                    elements[i].appendChild(itemName);
+                }
             }
         }
+        if(i == 1)
+        {
+            let container = document.createElement('div');
+            container.className = "item";
+            for(let shop in shopContainer)
+            {
+                container.appendChild(shopContainer[shop]);
+                elements[i].appendChild(container);
+            }
+        }
+
         results.appendChild(elements[i])
     }
     addActionLisnerForProducts();
 }
 
+function createNodeElement(type, className, innerHTML = '', name = '', id = '')
+{
+    let element = document.createElement(type);
+    element.className = className;
+    if(innerHTML) element.innerHTML = innerHTML;
+    if(name) element.name = name;
+    if(id) element.id = id
+    return element
+}
 
 function clearContainer(container)
 {
@@ -395,7 +443,7 @@ function createProductName(product, available)
 
     if (!product)
     {
-        productName.innerHTML = "Brak danego produktu w sklepie";
+        productName.innerHTML = 'Brak danego produktu w sklepie';
         productName.classList.add("empty");
         return productName;
     }
@@ -408,6 +456,15 @@ function createProductName(product, available)
         notAvailable.innerHTML = "(Niedostępny)";
         productName.appendChild(notAvailable)
     }
+    return productName;
+}
+
+function createEmptyProductName(product)
+{
+    let productName = document.createElement('div');
+    productName.className = "product_name";
+    productName.innerHTML = `Brak "${product}" w sklepie`;
+    productName.classList.add("empty");
     return productName;
 }
 
