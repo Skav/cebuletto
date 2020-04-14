@@ -312,6 +312,7 @@ input.products_item.empty{
 }
 
 .price.base{
+    margin-left: 0.5em;
     color: rgb(104, 104, 104);
     text-decoration: line-through;
 }

@@ -46,24 +46,17 @@ async function createCheckbox()
     {
         let items = await getData("shops");
 
-        let shopsDiv = document.createElement('div');
+        let shopsDiv = createNodeElement('div', undefined, undefined, undefined, 'shops')
         let searchForm = document.getElementById('searchForm');
-        shopsDiv.id = "shops";
 
         for(i=0; i<Object.keys(items).length;i++)
         {
-            let checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
+            let checkbox = createNodeElement('input', 'checkbox_shop', undefined, 'shop', items[i], 'checkbox')
+            let label = createNodeElement('label', undefined, items[i])
+            let item = createNodeElement('div', 'item_shop')
             checkbox.value = items[i];
-            checkbox.id = items[i];
-            checkbox.name = 'shop';
             checkbox.checked = true;
-            checkbox.className = 'checkbox_shop';
-            let label = document.createElement('label');
             label.setAttribute("for",checkbox.id);
-            label.innerHTML = items[i];
-            let item = document.createElement('div');
-            item.className = "item_shop";
 
             item.appendChild(checkbox);
             item.appendChild(label);
@@ -85,17 +78,17 @@ async function createCheckbox()
             console.log(error)
             createErrorDiv("Nie można znaleść strony");
         }
+        else
+            console.log(error)
     }
 }
 
 function addProduct()
 {
-    let input = document.createElement('input');
-    input.name = "product_name";
-    input.className = "products_item";
-    input.type = 'text';
+    let input = createNodeElement('input', 'products_item', undefined, 'product_name', undefined, 'text')
     input.placeholder = "Wpisz nazwe produktu";
     input.required = true;
+
     let div = document.getElementById('products');
     div.appendChild(input);
 }
@@ -317,17 +310,12 @@ function drawProducts(allProductsList, cheapestInShop, cheapestByProduct)
     {
         for(item in datas[i])
         {
-            let itemName = document.createElement('div');
-            itemName.className = "item";
-            itemName.innerHTML = item;
+            let itemName = createNodeElement('div', 'item', item)
 
             for(shop in datas[i][item])
             {
-                let shopName = document.createElement('div');
-                let productContainer = document.createElement('div');
-                shopName.className = "shop";
-                shopName.innerHTML = shop;
-                productContainer.className = "product_container";
+                let shopName = createNodeElement('div', 'shop', shop)
+                let productContainer = createNodeElement('div', 'product_container');
 
                 if(i == 1)
                 {
@@ -388,8 +376,7 @@ function drawProducts(allProductsList, cheapestInShop, cheapestByProduct)
         }
         if(i == 1)
         {
-            let container = document.createElement('div');
-            container.className = "item";
+            let container = createNodeElement('div', 'item')
             for(let shop in shopContainer)
             {
                 container.appendChild(shopContainer[shop]);
@@ -402,13 +389,14 @@ function drawProducts(allProductsList, cheapestInShop, cheapestByProduct)
     addActionLisnerForProducts();
 }
 
-function createNodeElement(type, className, innerHTML = '', name = '', id = '')
+function createNodeElement(type, className='', innerHTML='', name='', id='', inputType='')
 {
     let element = document.createElement(type);
-    element.className = className;
+    if(className) element.className = className;
     if(innerHTML) element.innerHTML = innerHTML;
     if(name) element.name = name;
     if(id) element.id = id
+    if(inputType && type=='input') element.type = inputType;
     return element
 }
 
@@ -419,27 +407,16 @@ function clearContainer(container)
 
 function createResultsElements()
 {
-    let byProduct = document.createElement('div');
-    let inShop = document.createElement('div');
-    let allProducts = document.createElement('div');
-
-    byProduct.id = "cheapestByProduct";
-    byProduct.className = "products_list";
-    byProduct.innerHTML = "Najtańsze produkty";
-    inShop.id = "cheapestInShop";
-    inShop.className = "products_list";
-    inShop.innerHTML = "Najtańsze produkty w danym sklepie";
-    allProducts.id = "allProducts";
-    allProducts.className = "products_list";
-    allProducts.innerHTML = "Wszystkie produkty";
+    let byProduct = createNodeElement('div', 'products_list', 'Najtańsze produkty');
+    let inShop = createNodeElement('div', 'products_list', 'Najtańsze produkty w danym sklepie');
+    let allProducts = createNodeElement('div', 'products_list', 'Wszystkie produkty');
 
     return {byProduct, inShop, allProducts};
 }
 
 function createProductName(product, available)
 {
-    let productName = document.createElement('div');
-    productName.className = "product_name";
+    let productName = createNodeElement('div', 'product_name');
 
     if (!product)
     {
@@ -451,9 +428,7 @@ function createProductName(product, available)
     productName.innerHTML = product;
     if(!available)
     {
-        let notAvailable = document.createElement("span");
-        notAvailable.className = "not_available";
-        notAvailable.innerHTML = "(Niedostępny)";
+        let notAvailable = createNodeElement('span', 'not_available', '(Niedostępny)');
         productName.appendChild(notAvailable)
     }
     return productName;
@@ -461,19 +436,13 @@ function createProductName(product, available)
 
 function createEmptyProductName(product)
 {
-    let productName = document.createElement('div');
-    productName.className = "product_name";
-    productName.innerHTML = `Brak "${product}" w sklepie`;
-    productName.classList.add("empty");
-    return productName;
+    return createNodeElement('div', 'product_name empty', `Brak "${product}" w sklepie`)
 }
 
 function createPrice(regular_price, discount_price)
 {
-    let price = document.createElement('div');
-    let regular = document.createElement('span');
-    price.className = "price_div";
-    regular.className = "price";
+    let price = createNodeElement('div', 'price_div');
+    let regular = createNodeElement('span', 'price')
 
     if(regular_price == 0 && discount_price == 0)
     {
@@ -484,10 +453,8 @@ function createPrice(regular_price, discount_price)
     }
     if(discount_price > 0)
     {
-        let discount = document.createElement('span');
-        discount.className = "price";
+        let discount = createNodeElement('span', 'price', `${discount_price} zł`)
         regular.classList.add("base");
-        discount.innerHTML = `${discount_price} zł `;
 
         price.appendChild(discount);
     }
