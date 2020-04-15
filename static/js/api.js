@@ -520,9 +520,8 @@ function clearError()
 
 function startLoadingScreen()
 {
-    let loading = document.createElement("div");
-    loading.id = "loading";
-    loading.innerHTML = "Ładowanie zawarości, moze to potrwac kilka minut...";
+    let loading = createNodeElement('div', undefined, 'Ładowanie zawarości, moze to potrwac kilka minut...',
+                                    undefined, 'loading')
     document.body.insertBefore(loading, document.body.firstChild);
 }
 
