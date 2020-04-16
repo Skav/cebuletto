@@ -1,19 +1,11 @@
 import json
-
 from flask import Flask, request, make_response, render_template
 from flask_restful import Api
 from flask_cors import CORS
 from flask.json import jsonify
-from assets.WebScrapper import shopsInfo, WebScrapper
+from assets.WebScrapper import WebScrapper
 from assets.serializer import Serializer
 from assets.CustomErrors import WebDriverNotFound
-
-'''
-TODO:
-Add not available product when is annotation on web page
-Clean code (again)
-Find bugs and repair it 
-'''
 
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
@@ -27,8 +19,7 @@ def index():
 
 @app.route('/shops')
 def get_shops():
-    data = shopsInfo.get_shops()
-    return make_response(jsonify(data), 200)
+    return make_response(jsonify(WebScrapper.get_shops()), 200)
 
 @app.route('/find', methods=['POST'])
 def get_products():
@@ -43,11 +34,11 @@ def get_products():
             products_list = serialized_data["products"]
             shops_list = serialized_data["shops"]
             scrapper = WebScrapper(products_list)
-            #products = scrapper.find_products(shops_list)
+            products = scrapper.find_products(shops_list)
 
             #TESTING FILE - TO DELETE IN PRODUCTION VERSION!
-            with open('json/data.json') as f:
-                products = json.load(f)
+            #with open('json/data.json') as f:
+            #   products = json.load(f)
             results = scrapper.sort_products_by_price(products)
             return make_response(jsonify(results), 200)
         return make_response(jsonify({"Error": serializer.get_errors()}), 400)
