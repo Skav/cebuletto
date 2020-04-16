@@ -1,23 +1,12 @@
 import json
+from bs4 import BeautifulSoup
+from selenium import webdriver
 from assets.CustomErrors import WebDriverNotFound
 from decimal import Decimal
 from queue import Queue
 from threading import Thread
-from bs4 import BeautifulSoup
-from selenium import webdriver
+from assets.ProductData import ProductData
 from re import sub
-
-class shopsInfo:
-    @staticmethod
-    def get_shops():
-        try:
-            with open('json/shops_info.json') as f:
-                shops = json.load(f)
-                return list(shops.keys())
-        except Exception as e:
-            print("Loading file error: {}".format(e))
-            raise e
-
 
 class WebScrapper:
     def __init__(self, products):
@@ -25,7 +14,6 @@ class WebScrapper:
         self.__config = self.__load_json("config")
         self.__shops_info = self.__load_json("shops_info")
         self.__shops_structure = self.__load_json("shops_structure")
-        self.__browser_options = self.__set_browser_options(self.__config["web_browser"])
         self.__result = Queue()
         self.__jobs = Queue()
         self.__threads = []
@@ -38,130 +26,131 @@ class WebScrapper:
             print("Loading file error: {}".format(e))
             raise e
 
-    def __set_browser_options(self, web_browser):
-        if web_browser == "Chrome":
-            browser_options = webdriver.ChromeOptions()
-        elif web_browser == "Firefox":
-            browser_options = webdriver.FirefoxOptions()
-        else:
-            raise WebDriverNotFound
+    def find_products(self, shop_list):
+        try:
+            self.__add_tasks_to_jobs(shop_list)
+            self.__init_threads()
+            self.__wait_for_threads()
 
-        browser_options.add_argument('headless')
-        return browser_options
+            return self.__convert_to_dict()
+        except WebDriverNotFound as e:
+            print("Web browser driver set in config file not found, please check your configuration file")
+            raise e
+        except Exception as e:
+            raise e
+
+    def __add_tasks_to_jobs(self, shop_list):
+        try:
+            for product in self.__products_list:
+                for shop in shop_list:
+                    self.__jobs.put(ProductData(shop, product, self.__shops_structure[shop],
+                                                self.__shops_info[shop]))
+        except Exception as e:
+            print("Error while adding jobs to queue: {}".format(e))
+            raise e
+
+    def __init_threads(self):
+        try:
+            for i in range(self.__config["max_pages"]):
+                if not self.__jobs.qsize() > 0:
+                    break
+                self.__threads.append(Thread(target=self.__get_products, daemon=True))
+                self.__threads[i].start()
+        except Exception as e:
+            print("Error while init a threads: {}".format(e))
+            raise e
+
+    def __wait_for_threads(self):
+        try:
+            for thread in self.__threads:
+                thread.join()
+        except Exception as e:
+            print("Error while starting threads: {}".format(e))
+            raise e
 
     def __get_products(self):
         try:
             while not self.__jobs.empty():
-                list_of_products = {}
+                data = self.__jobs.get()
+                shop_products = {data.product: {}}
 
-                search_data = self.__jobs.get().split(';')
-                shop = search_data[0].strip()
-                product_name = search_data[1].strip()
-                shop_products = {product_name: {}}
+                print(data.shop, " ", data.product)
 
-                print(shop, " ", product_name)
-
-                shop_struct = self.__shops_structure[shop]
-                product_name_keys = product_name.lower().split(" ")
-                product_separated_name = product_name.replace(" ", self.__shops_info[shop]["separator"])
-                url = "{}{}".format(self.__shops_info[shop]["request_url"], product_separated_name)
-
-                if "extra_requests" in self.__shops_info[shop]:
-                    url = url+"{}".format(self.__shops_info[shop]["extra_requests"])
                 driver = self.__set_web_driver()
-                soup = self.__get_page(url, driver)
-                products = self.__get_products_list(soup["source"], shop_struct)
+                page = self.__get_page(data.url, driver)
+                products = self.__get_products_list(page["source"], data.shop_struct)
 
                 if not products:
-                    results = self.__try_find_data_on_product_page(soup, shop, shop_struct, product_name_keys)
+                    results = self.__try_find_data_on_product_page(page, data)
                     if not results:
-                        self.__no_product_in_shop(shop_products, product_name, shop)
+                        self.__no_product_in_shop(shop_products, data.product, data.shop)
                         continue
-                    shop_products[product_name][shop] = results
+                    shop_products[data.product][data.shop] = results
                     self.__result.put(shop_products)
                     self.__jobs.task_done()
                     continue
 
-                for product in products:
-                    name = self.__get_name(product, product_name_keys, shop_struct)
-                    if not name:
-                        continue
-
-                    link = self.__get_link(product, shop_struct, shop)
-                    price = self.__get_price(product, shop_struct)
-                    available = False if not price else self.__is_product_available(product, shop_struct)
-
-                    if not price:
-                        price = {"regular": "0", "discount": "0"}
-
-                    list_of_products[name] = {'price': price["regular"], 'discount_price': price["discount"],
-                                              'link': link, 'available': available}
+                list_of_products = self.__get_products_data(products, data.product_name_keys, data.shop_struct,
+                                                            data.shop)
 
                 if not list_of_products:
-                    list_of_products = self.__try_find_data_on_product_page(soup, shop, shop_struct, product_name_keys)
+                    list_of_products = self.__try_find_data_on_product_page(page, data)
                     if not list_of_products:
-                        self.__no_product_in_shop(shop_products, product_name, shop)
+                        self.__no_product_in_shop(shop_products, data.product, data.shop)
                         continue
-                shop_products[product_name][shop] = list_of_products
+
+                shop_products[data.product][data.shop] = list_of_products
                 self.__result.put(shop_products)
                 self.__jobs.task_done()
         except Exception as e:
             print("Error in main function: {}".format(e))
             raise e
 
-    def __try_find_data_on_product_page(self, soup, shop, shop_struct, product_name_keys):
-        if not self.__shops_info[shop]["redirect_to_product_page"]:
+    def __try_find_data_on_product_page(self, page, data):
+        if not data.shop_info["redirect_to_product_page"]:
             return False
-        product_page_struct = shop_struct["single_product_page"]
+        single_product_struct = data.shop_struct["single_product_page"]
 
-        name = self.__get_name(soup["source"], product_name_keys, product_page_struct)
-        if not name:
-            return False
+        return self.__get_products_data(page['source'], data.product_name_keys, single_product_struct,
+                                        data.shop, page['url'])
 
-        price = self.__get_price(soup["source"], product_page_struct)
-        link = soup["url"]
-        available = False if not price else self.__is_product_available(soup["source"], product_page_struct)
+    def __get_products_data(self, products, product_name_keys, shop_struct, shop, url=None):
+        list_of_products = {}
+        for product in products:
+            name = self.__get_name(product, product_name_keys, shop_struct)
+            if not name:
+                continue
 
-        if not price:
-            price = {"regular": "0", "discount": "0"}
+            link = self.__get_link(product, shop_struct, shop) if not url else url
+            price = self.__get_price(product, shop_struct)
+            available = False if not price else self.__is_product_available(product, shop_struct)
 
-        return {name: {'price': price["regular"], 'discount_price': price["discount"], 'link': link,
-                       'available': available}}
+            if not price:
+                price = {"regular": "0", "discount": "0"}
 
-
-    def __no_product_in_shop(self, shop_products, product_name, shop):
-        shop_products[product_name][shop] = {product_name: "Brak"}
-        self.__result.put(shop_products)
-        self.__jobs.task_done()
-
-    def __is_product_available(self, product, shop_struct):
-        if "available" in shop_struct.keys():
-            product_available = product.find(shop_struct["available"]["type"],
-                                             attrs=shop_struct["available"]["attrs"])
-            if not product_available:
-                return True
-
-            if "not_available_message" in shop_struct["available"].keys():
-                if "child_type" in shop_struct["available"].keys():
-                    product_available = product_available.find(shop_struct["available"]["child_type"],
-                                                               attrs=shop_struct["available"]["child_attrs"])
-
-                if product_available.text.lower() == shop_struct["available"]["not_available_message"].lower():
-                    return False
-        return True
+            list_of_products[name] = {'price': price["regular"], 'discount_price': price["discount"],
+                                      'link': link, 'available': available}
+        return list_of_products
 
     def __set_web_driver(self):
         if self.__config["web_browser"] == "Chrome":
-            return webdriver.Chrome(options=self.__browser_options)
+            browser_options = webdriver.ChromeOptions()
+            browser_options.add_argument('headless')
+            return webdriver.Chrome(options=browser_options)
         elif self.__config["web_browser"] == "Firefox":
-            return webdriver.Firefox(options=self.__browser_options)
+            browser_options = webdriver.FirefoxOptions()
+            browser_options.add_argument('headless')
+            return webdriver.Firefox(options=browser_options)
         else:
-            raise WebDriverNotFound
+            raise WebDriverNotFound(self.__config["web_browser"])
 
     def __get_page(self, url, driver):
         try:
             driver.get(url)
-            return {"url": driver.current_url, "source": BeautifulSoup(driver.page_source, 'html.parser')}
+            data = {"url": driver.current_url,
+                    "source": BeautifulSoup(driver.page_source, 'html.parser')}
+            driver.close()
+            return data
         except Exception as e:
             print("Error while getting page: {}".format(e))
             raise e
@@ -310,36 +299,26 @@ class WebScrapper:
             print("Error while getting price: {}".format(e))
             raise e
 
-    def find_products(self, shop_list=None):
-        try:
-            self.__add_tasks_to_jobs(shop_list)
-            self.__init_threads()
-            self.__wait_for_threads()
+    def __is_product_available(self, product, shop_struct):
+        if "available" in shop_struct.keys():
+            product_available = product.find(shop_struct["available"]["type"],
+                                             attrs=shop_struct["available"]["attrs"])
+            if not product_available:
+                return True
 
-            return self.__convert_to_dict()
-        except WebDriverNotFound as e:
-            print("Web browser driver set in config file not found, please check your configuration file")
-            raise e
-        except Exception as e:
-            raise e
+            if "not_available_message" in shop_struct["available"].keys():
+                if "child_type" in shop_struct["available"].keys():
+                    product_available = product_available.find(shop_struct["available"]["child_type"],
+                                                               attrs=shop_struct["available"]["child_attrs"])
 
-    def __add_tasks_to_jobs(self, shop_list=None):
-        try:
-            shops = shop_list if shop_list else self.__shops_structure.keys()
-            for product in self.__products_list:
-                for shop in shops:
-                    self.__jobs.put('{};{}'.format(shop, product))
-        except Exception as e:
-            print("Error while adding jobs to queue: {}".format(e))
-            raise e
+                if product_available.text.lower() == shop_struct["available"]["not_available_message"].lower():
+                    return False
+        return True
 
-    def __wait_for_threads(self):
-        try:
-            for thread in self.__threads:
-                thread.join()
-        except Exception as e:
-            print("Error while starting threads: {}".format(e))
-            raise e
+    def __no_product_in_shop(self, shop_products, product_name, shop):
+        shop_products[product_name][shop] = {product_name: "Brak"}
+        self.__result.put(shop_products)
+        self.__jobs.task_done()
 
     def __convert_to_dict(self):
         try:
@@ -374,28 +353,12 @@ class WebScrapper:
         except Exception as e:
             raise e
 
-    def __init_threads(self):
+    @staticmethod
+    def get_shops():
         try:
-            for i in range(self.__config["max_pages"]):
-                if not self.__jobs.qsize() > 0:
-                    break
-                self.__threads.append(Thread(target=self.__get_products, daemon=True))
-                self.__threads[i].start()
+            with open('json/shops_info.json') as f:
+                shops = json.load(f)
+                return list(shops.keys())
         except Exception as e:
-            print("Error while init a threads: {}".format(e))
-            raise e
-
-    def __wait_for_threads(self):
-        try:
-            for thread in self.__threads:
-                thread.join()
-        except Exception as e:
-            print("Error while joining threads: {}".format(e))
-            raise e
-
-    def get_shops_list(self):
-        try:
-            return list(self.__shops_info.keys())
-        except Exception as e:
-            print("Error while getting shops list: {}".format(e))
+            print("Loading file error: {}".format(e))
             raise e
