@@ -42,7 +42,8 @@ class Serializer:
             return False
 
         self.data = {"products": products,
-                     "shops": shops}
+                     "shops": shops,
+                     "order": self.__request_data['order']}
 
     def __check_request_keys(self):
         if "products_list" not in self.__request_data:
@@ -58,7 +59,6 @@ class Serializer:
     def __create_error(self, message):
         self.__valid = False
         self.errors = "{}; {}".format(self.errors, message) if self.errors else message
-
 
     def is_valid(self):
         return self.__valid
