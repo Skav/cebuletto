@@ -5,9 +5,9 @@ import re
 class Serializer:
     def __init__(self, data):
         self.__request_data = data
-        self.__data = None
+        self.data = None
         self.__valid = True
-        self.__validation_message = ""
+        self.errors = ""
         self.__shops_info = self.__load_file()
 
     def __load_file(self):
@@ -15,13 +15,9 @@ class Serializer:
             return json.load(f)
 
     def serialize_data(self):
-        if "products_list" not in self.__request_data:
-            self.__valid = False
-            self.__validation_message = "products_list is not set"
-            return False
-        if "shops_list" not in self.__request_data:
-            self.__valid = False
-            self.__validation_message = "shop_list is not set"
+        self.__check_request_keys()
+
+        if not self.__valid:
             return False
 
         products = self.__request_data["products_list"]
@@ -32,34 +28,40 @@ class Serializer:
         shops = [x for x in clear_shops if x]
 
         if not products:
-            self.__valid = False
-            self.__validation_message = "There is not products in prodcuts_list"
-            return False
+            self.__create_error("There is not products in products_list")
         if not shops:
-            self.__valid = False
-            self.__validation_message = "There is not shops in shops_list"
+            self.__create_error("There is not shops in shops_list")
+
+        if not self.__valid:
             return False
 
-        unsupported_shops = []
-        for shop in shops:
-            if shop not in self.__shops_info.keys():
-                unsupported_shops.append(shop)
+        unsupported_shops = [shop for shop in shops if shop not in self.__shops_info.keys()]
 
         if unsupported_shops:
-            self.__valid = False
-            self.__validation_message = "This shop(s) are unsupported by application: {}".format(', '.join(unsupported_shops))
+            self.__create_error("This shop(s) are unsupported by application: {}".format(', '.join(unsupported_shops)))
+            return False
 
-        self.__data = {"products": products,
-                       "shops": shops}
+        self.data = {"products": products,
+                     "shops": shops}
+
+    def __check_request_keys(self):
+        if "products_list" not in self.__request_data:
+            self.__create_error("product_list is not set")
+        if "shops_list" not in self.__request_data:
+            self.__create_error("shop_list is not set")
+        if "order" in self.__request_data:
+            if not self.__request_data['order'] in ('asc', 'desc'):
+                self.__create_error("incorrect order value")
+        else:
+            self.__request_data['order'] = 'desc'
+
+    def __create_error(self, message):
+        self.__valid = False
+        self.errors = "{}; {}".format(self.errors, message) if self.errors else message
+
 
     def is_valid(self):
         return self.__valid
-
-    def get_errors(self):
-        return self.__validation_message
-
-    def get_data(self):
-        return self.__data
 
 
 
