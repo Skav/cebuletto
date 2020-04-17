@@ -1,12 +1,15 @@
 import json
+import logging
 from flask import Flask, request, make_response, render_template
 from flask_restful import Api
 from flask_cors import CORS
 from flask.json import jsonify
 from assets.WebScrapper import WebScrapper
 from assets.serializer import Serializer
-from assets.CustomErrors import WebDriverNotFound
+from assets.CustomErrors import WebDriverNotFound, ShopsNotSet, ProductsNotSet
 
+logger = logging.getLogger('app')
+logger.setLevel('ERROR')
 app = Flask(__name__)
 app.config['JSON_SORT_KEYS'] = False
 cors = CORS(app)
@@ -19,7 +22,11 @@ def index():
 
 @app.route('/shops')
 def get_shops():
-    return make_response(jsonify(WebScrapper.get_shops()), 200)
+    try:
+        return make_response(jsonify(WebScrapper.get_shops()), 200)
+    except FileNotFoundError as e:
+        logger.exception(e)
+        return make_response(jsonify({"Error": "Internal server error"}), 500)
 
 @app.route('/find', methods=['POST'])
 def get_products():
@@ -31,21 +38,29 @@ def get_products():
 
         if(serializer.is_valid()):
             serialized_data = serializer.data
-            products_list = serialized_data["products"]
-            shops_list = serialized_data["shops"]
-            scrapper = WebScrapper(products_list)
-            products = scrapper.find_products(shops_list)
+            scrapper = WebScrapper(serialized_data)
+            products = scrapper.find_products(sort=True)
 
             #TESTING FILE - TO DELETE IN PRODUCTION VERSION!
             #with open('json/data.json') as f:
-            #   products = json.load(f)
-            results = scrapper.sort_products_by_price(products)
-            return make_response(jsonify(results), 200)
+            #    prodcuts = json.load(f)
+
+            return make_response(jsonify(products), 200)
         return make_response(jsonify({"Error": serializer.errors}), 400)
 
-    except WebDriverNotFound:
+    except WebDriverNotFound as e:
+        logger.error("XDXDXDXDXDXD")
         return make_response(jsonify({"Error": "Server configuration error"}), 500)
+    except ShopsNotSet as e:
+        logger.exception(e)
+        return make_response(jsonify({"Error": "Shops are not set"}), 400)
+    except ProductsNotSet as e:
+        logger.exception(e)
+        return make_response(jsonify({"Error": "Products are not set"}), 400)
+    except FileNotFoundError as e:
+        logger.exception(e)
+        return make_response(jsonify({"Error": "Internal server error"}), 500)
     except Exception as e:
-        raise e
+        logger.exception(e)
         return make_response(jsonify({"Error": "Internal server error"}), 500)
 

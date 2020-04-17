@@ -12,7 +12,7 @@ def main():
     products_list = scrapper.find_products(shop_list)
     # with open('data.json', ) as f:
     #     file = json.load(f)
-    results = scrapper.sort_products_by_price(products_list)
+    results = scrapper.__sort_products_by_price(products_list)
     print('execution time: ', datetime.now()-start)
 
     print(results)
