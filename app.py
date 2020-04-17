@@ -30,7 +30,7 @@ def get_products():
         serializer.serialize_data()
 
         if(serializer.is_valid()):
-            serialized_data = serializer.get_data()
+            serialized_data = serializer.data
             products_list = serialized_data["products"]
             shops_list = serialized_data["shops"]
             scrapper = WebScrapper(products_list)
@@ -41,7 +41,7 @@ def get_products():
             #   products = json.load(f)
             results = scrapper.sort_products_by_price(products)
             return make_response(jsonify(results), 200)
-        return make_response(jsonify({"Error": serializer.get_errors()}), 400)
+        return make_response(jsonify({"Error": serializer.errors}), 400)
 
     except WebDriverNotFound:
         return make_response(jsonify({"Error": "Server configuration error"}), 500)

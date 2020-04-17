@@ -2,3 +2,5 @@
 ghostdriver.log
 venv/
 .vscode/
+__pycache__/
+assets/__pycache/
