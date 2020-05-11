@@ -49,7 +49,7 @@ def get_products():
         return make_response(jsonify({"Error": serializer.errors}), 400)
 
     except WebDriverNotFound as e:
-        logger.error("XDXDXDXDXDXD")
+        logger.error(e)
         return make_response(jsonify({"Error": "Server configuration error"}), 500)
     except ShopsNotSet as e:
         logger.exception(e)
