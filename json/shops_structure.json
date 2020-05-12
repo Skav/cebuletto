@@ -83,7 +83,23 @@
       },
       "not_available_message": "Niedostępny"
     },
-
+    "product_image_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "preload-image image-main"
+      }
+    },
+    "product_image":
+    {
+      "type": "img",
+      "attrs":
+      {
+        "class": "blazy"
+      },
+      "url_location": "data-src"
+    },
     "single_product_page":
     {
       "product_name":
@@ -137,6 +153,23 @@
           "class": "product-unavailable-label"
         },
         "not_available_message": "Pozycja niedostępna"
+      },
+      "product_image_container":
+      {
+        "type": "span",
+        "attrs":
+        {
+          "class": "preload-image"
+        }
+      },
+      "product_image":
+      {
+        "type": "img",
+        "attrs":
+        {
+          "class": "blazy b-loaded"
+        },
+        "url_location": "data-url"
       }
     }
   },
@@ -203,6 +236,31 @@
         "class": "badge product-unavailable"
       },
       "not_available_message": "Wyprzedany"
+    },
+    "product_image_container":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "class": "thumbnail product-thumbnail"
+      }
+    },
+    "product_image":
+    {
+      "type": "img",
+      "attrs":
+      {
+        "class": "img-fluid js-lazy-product-image product-thumbnail-first loaded"
+      },
+      "url_location": "data-src"
+    },
+    "alt_product_image":
+    {
+      "type": "img",
+      "attrs":
+      {
+        "class": "img-fluid js-lazy-product-image product-thumbnail-first lazy-product-loading"
+      }
     }
   },
 

@@ -22,7 +22,7 @@ class Serializer:
 
         products = self.__request_data["products_list"]
         shops = self.__request_data["shops_list"]
-        clear_products = [re.sub('[^\d+\w+\-_ ]', '', x).strip() for x in products]
+        clear_products = [re.sub('[^\d+\w+\-_\' ]', '', x).strip() for x in products]
         clear_shops = [re.sub('[^\d+a-zA-Z.\- ]', '', x).strip() for x in shops]
         products = [x.replace('-', ' ').replace('_', ' ') for x in clear_products if x]
         shops = [x for x in clear_shops if x]
