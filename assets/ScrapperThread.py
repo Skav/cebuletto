@@ -231,8 +231,8 @@ class ScrapperThread(Thread):
 
     def __get_image_url(self, product, shop_struct, shop):
         if "product_image_container" in shop_struct.keys():
-            image_container = product.find(shop_struct['product_image_container']['type'],
-                                           attrs=shop_struct['product_image_container']['attrs'])
+            image_container = product.findAll(shop_struct['product_image_container']['type'],
+                                           attrs=shop_struct['product_image_container']['attrs'])[0]
 
             image_url = image_container.find(shop_struct['product_image']['type'],
                                             attrs=shop_struct['product_image']['attrs'])
@@ -241,8 +241,8 @@ class ScrapperThread(Thread):
                 image_url = image_container.find(shop_struct['alt_product_image']['type'],
                                                  attrs=shop_struct['alt_product_image']['attrs'])
         else:
-            image_url = product.find(shop_struct['product_image']['type'],
-                                            attrs=shop_struct['product_image']['attrs'])
+            image_url = product.findAll(shop_struct['product_image']['type'],
+                                            attrs=shop_struct['product_image']['attrs'])[0]
 
             if not image_url and "alt_product_image" in shop_struct.keys():
                 image_url = product.find(shop_struct['product_image']['type'],
@@ -254,6 +254,7 @@ class ScrapperThread(Thread):
             image_url = image_url['src']
 
         if not self.__shops_info[shop]['has_link_in_image_url']:
+            if image_url[0] != '/': image_url = "{}{}".format('/', image_url)
             image_url = '{}{}'.format(self.__shops_info[shop]["url"], image_url)
 
         return image_url
