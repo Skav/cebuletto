@@ -72,13 +72,14 @@ class ScrapperThread(Thread):
 
             link = self.__get_link(product, shop_struct, shop) if not url else url
             price = self.__get_price(product, shop_struct)
+            image_url = self.__get_image_url(product, shop_struct, shop)
             available = False if not price else self.__is_product_available(product, shop_struct)
 
             if not price:
                 price = {"regular": "0", "discount": "0"}
 
             list_of_products[name] = {'price': price["regular"], 'discount_price': price["discount"],
-                                      'link': link, 'available': available}
+                                      'link': link, 'image_url': image_url, 'available': available}
         return list_of_products
 
     def __set_web_driver(self):
@@ -227,6 +228,36 @@ class ScrapperThread(Thread):
             discount_price = Decimal(0)
 
         return {"regular": str(regular_price), "discount": str(discount_price)}
+
+    def __get_image_url(self, product, shop_struct, shop):
+        if "product_image_container" in shop_struct.keys():
+            image_container = product.findAll(shop_struct['product_image_container']['type'],
+                                           attrs=shop_struct['product_image_container']['attrs'])[0]
+
+            image_url = image_container.find(shop_struct['product_image']['type'],
+                                            attrs=shop_struct['product_image']['attrs'])
+
+            if not image_url and "alt_product-image" in shop_struct.keys():
+                image_url = image_container.find(shop_struct['alt_product_image']['type'],
+                                                 attrs=shop_struct['alt_product_image']['attrs'])
+        else:
+            image_url = product.findAll(shop_struct['product_image']['type'],
+                                            attrs=shop_struct['product_image']['attrs'])[0]
+
+            if not image_url and "alt_product_image" in shop_struct.keys():
+                image_url = product.find(shop_struct['product_image']['type'],
+                                             attrs=shop_struct['product_image']['attrs'])
+
+        if 'url_location' in shop_struct['product_image'] and shop_struct['product_image']['url_location'] in image_url.attrs:
+            image_url = image_url[shop_struct['product_image']['url_location']]
+        else:
+            image_url = image_url['src']
+
+        if not self.__shops_info[shop]['has_link_in_image_url']:
+            if image_url[0] != '/': image_url = "{}{}".format('/', image_url)
+            image_url = '{}{}'.format(self.__shops_info[shop]["url"], image_url)
+
+        return image_url
 
     def __is_product_available(self, product, shop_struct):
         if "available" in shop_struct.keys():

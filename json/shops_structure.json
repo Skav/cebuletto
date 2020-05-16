@@ -83,7 +83,23 @@
       },
       "not_available_message": "Niedostępny"
     },
-
+    "product_image_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "preload-image image-main"
+      }
+    },
+    "product_image":
+    {
+      "type": "img",
+      "attrs":
+      {
+        "class": "blazy"
+      },
+      "url_location": "data-src"
+    },
     "single_product_page":
     {
       "product_name":
@@ -137,6 +153,23 @@
           "class": "product-unavailable-label"
         },
         "not_available_message": "Pozycja niedostępna"
+      },
+      "product_image_container":
+      {
+        "type": "span",
+        "attrs":
+        {
+          "class": "preload-image"
+        }
+      },
+      "product_image":
+      {
+        "type": "img",
+        "attrs":
+        {
+          "class": "blazy b-loaded"
+        },
+        "url_location": "data-url"
       }
     }
   },
@@ -203,6 +236,24 @@
         "class": "badge product-unavailable"
       },
       "not_available_message": "Wyprzedany"
+    },
+    "product_image_container":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "class": "thumbnail product-thumbnail"
+      }
+    },
+    "product_image":
+    {
+      "type": "img",
+      "attrs":
+      {
+        "class": ["img-fluid js-lazy-product-image product-thumbnail-first loaded",
+                  "img-fluid js-lazy-product-image product-thumbnail-first lazy-product-loading"]
+      },
+      "url_location": "data-src"
     }
   },
 
@@ -273,6 +324,20 @@
       "child_type": "span",
       "child_attrs": {},
       "not_available_message": "Powiadom o dostępności"
+    },
+    "product_image_container":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "class": "prodimage f-row"
+      }
+    },
+    "product_image":
+    {
+      "type": "img",
+      "attrs": {},
+      "url_location": "data-src"
     }
   },
 
@@ -342,6 +407,23 @@
         "class":"product-name"
       }
     },
+    "product_image_container":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "class": ["product-icon align_row", "product-icon align_row loading"]
+      }
+    },
+    "product_image":
+    {
+      "type": "img",
+      "attrs":
+      {
+        "class": ["b-lazy", "b-lazy b-loaded"]
+      },
+      "url_location": "data-src"
+    },
     "single_product_page":
     {
       "product_name":
@@ -394,6 +476,22 @@
           "id": "projector_status_description"
         },
         "not_available_message": "Produkt niedostępny w magazynie"
+      },
+      "product_image_container":
+      {
+        "type": "a",
+        "attrs":
+        {
+          "class": "projector_medium_image"
+        }
+      },
+      "product_image":
+      {
+        "type": "img",
+        "attrs":
+        {
+          "class": "photo"
+        }
       }
     }
   },
@@ -470,6 +568,20 @@
       "child_type": "span",
       "child_attrs": {},
       "not_available_message": "Powiadom o dostępności"
+    },
+    "product_image_container":
+    {
+      "type": "a",
+      "attrs":
+      {
+        "class": "prodimage f-row"
+      }
+    },
+    "product_image":
+    {
+      "type": "img",
+      "attrs":{},
+      "url_location": "data-src"
     }
   },
 
@@ -556,6 +668,19 @@
       },
       "not_available_message": "Zapytaj o produkt"
     },
+    "product_image_container":
+    {
+      "type": "div",
+      "attrs":
+      {
+        "class": "mf-product-thumbnail"
+      }
+    },
+    "product_image":
+    {
+      "type": "img",
+      "attrs":{}
+    },
     "single_product_page":
     {
       "product_name":
@@ -610,6 +735,23 @@
           "class": "out-of-stock ribbon"
         },
         "not_available_message": "Obecnie brak na stanie"
+      },
+      "product_image_container":
+      {
+        "type": "div",
+        "attrs":
+        {
+          "class": "woocommerce-product-gallery__image"
+        }
+      },
+      "product_image":
+      {
+        "type": "img",
+        "attrs":
+        {
+          "class": "wp-post-image"
+        },
+        "url_location": "data-src"
       }
     }
   }
