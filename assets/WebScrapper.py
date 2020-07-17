@@ -2,7 +2,7 @@ import json
 from assets.CustomErrors import ShopsNotSet, ProductsNotSet
 from decimal import Decimal
 from queue import Queue, Empty
-from assets.ProductData import ProductData
+from assets.DTO.ProductData import ProductData
 from assets.ScrapperThread import ScrapperThread
 
 

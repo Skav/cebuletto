@@ -230,6 +230,9 @@ class ScrapperThread(Thread):
         return {"regular": str(regular_price), "discount": str(discount_price)}
 
     def __get_image_url(self, product, shop_struct, shop):
+        if "product_image" not in shop_struct.keys():
+            return None
+
         if "product_image_container" in shop_struct.keys():
             image_container = product.findAll(shop_struct['product_image_container']['type'],
                                            attrs=shop_struct['product_image_container']['attrs'])[0]
