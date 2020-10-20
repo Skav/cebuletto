@@ -24,3 +24,10 @@ create table tagsToProducts(
 	idProduct int not null references products(idProduct),
     idProductTags int not null references productsTags(idProductTags),
     lastUpdate timestamp not null default now() on update now());
+
+create table historyOfPrices(
+    idHistoryOfPrice int auto_increment primary key,
+    idProduct int not null references products(idProduct),
+    price float(6,2) not null default 0,
+    discountPrice float(6,2) not null default 0,
+    priceDate timestamp not null default now() on update now());

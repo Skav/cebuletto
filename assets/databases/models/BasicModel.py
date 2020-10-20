@@ -1,7 +1,5 @@
 import mysql.connector
 import os
-from ..CustomErrors import SerializerError
-
 
 class BasicModel:
 
@@ -25,7 +23,7 @@ class BasicModel:
         return self._cursor.fetchall()
 
     def get_row_by_id(self, row_id: int):
-        query = f"SELECT * FROM {self.__table_name} WHERE {self.__id_table} = $s LIMIT 1"
+        query = f"SELECT * FROM {self.__table_name} WHERE {self.__id_table} = %s LIMIT 1"
         self._cursor.execute(query, (row_id,))
         return self._cursor.fetchone()
 
