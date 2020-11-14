@@ -2,7 +2,7 @@ from json import load
 from re import sub
 
 
-class Serializer:
+class RequestSerializer:
     def __init__(self, data):
         self.__request_data = data
         self.data = None

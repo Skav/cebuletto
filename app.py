@@ -4,7 +4,7 @@ from flask_restful import Api
 from flask_cors import CORS
 from flask.json import jsonify
 from assets.WebScrapper import WebScrapper
-from assets.serializers.Serializer import Serializer
+from assets.serializers.RequestSerializer import RequestSerializer
 from assets.CustomErrors import WebDriverNotFound, ShopsNotSet, ProductsNotSet
 from dotenv import load_dotenv
 
@@ -38,7 +38,7 @@ def get_products():
         json_request = request.get_json()
         print(json_request)
 
-        serializer = Serializer(json_request)
+        serializer = RequestSerializer(json_request)
         if serializer.is_valid():
             scrapper = WebScrapper(serializer.data)
             products = scrapper.find_products(sort=True)

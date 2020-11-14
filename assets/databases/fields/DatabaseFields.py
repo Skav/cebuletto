@@ -1,10 +1,10 @@
 from datetime import datetime
 from decimal import Decimal
-from .FieldsTypes import NOT_PROVIDED
+from .FieldsValues import NOT_PROVIDED
 
 class BaseField:
     def __init__(self, field_type=None, max_length=None, not_null=False, default=NOT_PROVIDED,
-                 on_update=NOT_PROVIDED, writeable=True, unique=False, primary=False):
+                 on_update=NOT_PROVIDED, writeable=True, unique=False, primary=False, foreign_key=False):
         self.field_type = field_type
         self.max_length = max_length
         self.not_null = not_null
@@ -13,6 +13,7 @@ class BaseField:
         self.on_update = on_update
         self.unique = unique
         self.primary = primary
+        self.foreign_key = foreign_key
 
 
 class VarcharField(BaseField):

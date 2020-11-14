@@ -1,5 +1,5 @@
 from ..databases.fields.DatabaseFields import *
-from ..databases.fields.FieldsTypes import NOT_PROVIDED
+from ..databases.fields.FieldsValues import NOT_PROVIDED
 from assets.databases.models.ShopsModel import ShopsModel
 
 
@@ -35,13 +35,14 @@ class ModelSerializer:
         return True
 
     def __check_not_null_fields(self):
-        not_null_fields = [x for x in self._table_fields if getattr(self._model, x).not_null]
-        empty_values = [k for k, v in self._input_data.items() if v is None or '']
+        not_null_fields = [x for x in self._table_fields if getattr(self._model, x).not_null
+                           and getattr(self._model, x).primary is False]
         missing_fields = [x for x in self._table_fields if x not in self._input_data.keys()
-                          and getattr(self._model, x).not_null is True
+                          and x in not_null_fields
                           and getattr(self._model, x).default == NOT_PROVIDED
-                          and getattr(self._model, x).primary is False]
+                          and getattr(self._model, x).writeable is False]
 
+        empty_values = [k for k, v in self._input_data.items() if v is None or '']
         empty_not_null_fields = [x for x in empty_values if x in not_null_fields]
 
         if empty_not_null_fields:

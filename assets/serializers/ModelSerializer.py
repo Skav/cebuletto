@@ -1,6 +1,3 @@
-from assets.enums.DatabaseEnums import ColumnTypes
-
-
 class ModelSerializer:
     def __init__(self, required: dict, data: dict, exemption=list):
         """Checks data has required keys, values and data types, exemption hold variables which can be empty
@@ -13,7 +10,7 @@ class ModelSerializer:
         self.__valid = True
 
         if 'row_id' in data.keys():
-            self.__required['row_id'] = ColumnTypes.INT
+            self.__required['row_id'] = int
 
         self.__check_is_parameters_correct()
         if self.__valid:
@@ -52,7 +49,7 @@ class ModelSerializer:
             return False
 
         for k, v in filtered_data.items():
-            if type(v) == ColumnTypes.BOOL.value:
+            if type(v) == bool:
                 filtered_data[k] = v*1
 
         self.data = {k: str(v) for k, v in filtered_data.items()}

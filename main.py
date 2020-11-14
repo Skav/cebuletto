@@ -8,11 +8,11 @@ load_dotenv()
 def main():
     # serializer = ShopsSerializer({"shopName": True})
     db = ShopsModel()
-    db.delete_row_by_name('noelo')
+    print(db.get_row_by_name("mrcleaner"))
     # serializer = ShopsSerializer({"shopName": "noelo"})
     # if serializer.is_valid:
     #     db.create_row(serializer.data['shopName'])
     # else:
-    #     raise SerializerError(serializer.errors)
+    #     raise SerializerError(serializer.errors)pip
 
 main()

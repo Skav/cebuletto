@@ -1,0 +1,13 @@
+beautifulsoup4==4.8.2
+Flask==1.1.1
+Flask-Cors==3.0.8
+Flask-RESTful==0.3.8
+mysql-connector-python==8.0.20
+python-dotenv==0.13.0
+pytz==2019.3
+selenium==3.141.0
+six==1.14.0
+soupsieve==2.0
+timestamp==0.0.1
+urllib3==1.25.8
+Werkzeug==1.0.0
