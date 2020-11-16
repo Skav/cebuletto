@@ -1,6 +1,7 @@
 from assets.databases.models.BasicModel import BasicModel
 from assets.databases.fields.DatabaseFields import *
 
+
 class ShopsModel(BasicModel):
     idShop = IntegerField(primary=True, max_length=11, not_null=True)
     shopName = VarcharField(max_length=45, not_null=True)

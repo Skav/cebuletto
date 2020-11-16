@@ -1,23 +1,25 @@
 from json import load
 from re import sub
+from .BaseSerializer import BaseSerializer
 
 
-class RequestSerializer:
+class RequestSerializer(BaseSerializer):
     def __init__(self, data):
+        super().__init__()
         self.__request_data = data
         self.data = None
-        self.__valid = True
-        self.errors = ""
         self.__shops_info = self.__load_file()
-        self.__check_request_keys()
-        if self.__valid:
-            self.__serialize_data()
+        self.__serialize_data()
 
     def __load_file(self):
         with open("json/shops_info.json") as f:
             return load(f)
 
     def __serialize_data(self):
+
+        if not self.__are_request_keys_correct():
+            return False
+
         products = self.__request_data["products_list"]
         shops = self.__request_data["shops_list"]
         clear_products = [sub('[^\d+\w+\-_\' ]', '', x).strip() for x in products]
@@ -26,41 +28,35 @@ class RequestSerializer:
         shops = [x for x in clear_shops if x]
 
         if not products:
-            self.__set_error("There is not products in products_list")
+            self._set_error("There is not products in products_list")
         if not shops:
-            self.__set_error("There is not shops in shops_list")
+            self._set_error("There is not shops in shops_list")
 
-        if not self.__valid:
+        if not self.is_valid:
             return False
 
         unsupported_shops = [shop for shop in shops if shop not in self.__shops_info.keys()]
 
         if unsupported_shops:
-            self.__set_error("This shop(s) are unsupported by application: {}".format(', '.join(unsupported_shops)))
+            self._set_error("This shop(s) are unsupported by application: {}".format(', '.join(unsupported_shops)))
             return False
 
         self.data = {"products": products,
                      "shops": shops,
                      "order": self.__request_data['order']}
 
-    def __check_request_keys(self):
+    def __are_request_keys_correct(self):
         if "products_list" not in self.__request_data:
-            self.__set_error("product_list is not set")
+            self._set_error("products_list is not set")
         if "shops_list" not in self.__request_data:
-            self.__set_error("shop_list is not set")
+            self._set_error("shops_list is not set")
         if "order" in self.__request_data:
             if not self.__request_data['order'] in ('asc', 'desc'):
-                self.__set_error("incorrect order value")
+                self._set_error("incorrect order value")
         else:
             self.__request_data['order'] = 'desc'
 
-    def __set_error(self, message):
-        self.__valid = False
-        self.errors = "{}; {}".format(self.errors, message) if self.errors else message
-
-    def is_valid(self):
-        return self.__valid
-
+        return True if self.is_valid else False
 
 
 

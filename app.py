@@ -39,7 +39,7 @@ def get_products():
         print(json_request)
 
         serializer = RequestSerializer(json_request)
-        if serializer.is_valid():
+        if serializer.is_valid:
             scrapper = WebScrapper(serializer.data)
             products = scrapper.find_products(sort=True)
 
