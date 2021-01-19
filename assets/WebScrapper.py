@@ -104,6 +104,6 @@ class WebScrapper:
 
     @staticmethod
     def get_shops():
-        with open('json/shops_info.json') as f:
+        with open('../json/shops_info.json') as f:
             shops = json.load(f)
             return list(shops.keys())

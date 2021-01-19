@@ -10,15 +10,20 @@ class ShopsModel(BasicModel):
     def __init__(self):
         super().__init__('shops')
 
+    def create_row(self, name: str):
+        query = "INSERT INTO shops VALUES(default, %s, default)"
+        self._cursor.execute(query, (name,))
+        self._db.commit()
+
     def get_row_by_name(self, name: str):
         query = "SELECT * FROM shops WHERE shopName = %s"
         self._cursor.execute(query, (name,))
         return self._cursor.fetchone()
 
-    def create_row(self, name: str):
-        query = "INSERT INTO shops VALUES(default, %s, default)"
+    def get_counter_value_by_name(self, name: str):
+        query = "SELECT searchCounter FROM shops WHERE shopName = %s"
         self._cursor.execute(query, (name,))
-        self._db.commit()
+        return self._cursor.fetchone()
 
     def delete_row_by_name(self, name: str):
         query = "DELETE FROM shops WHERE shopName = %s"

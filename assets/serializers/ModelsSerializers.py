@@ -49,7 +49,7 @@ class ModelSerializer(BaseSerializer):
         if missing_fields:
             self._set_error(f"Missing fields {missing_fields}")
 
-        return True if self.is_valid else False
+        return self.is_valid
 
 
 class ShopsSerializer(ModelSerializer):

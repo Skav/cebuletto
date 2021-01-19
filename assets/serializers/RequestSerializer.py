@@ -56,7 +56,7 @@ class RequestSerializer(BaseSerializer):
         else:
             self.__request_data['order'] = 'desc'
 
-        return True if self.is_valid else False
+        return self.is_valid
 
 
 
