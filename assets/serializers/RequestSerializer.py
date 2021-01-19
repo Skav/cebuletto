@@ -1,4 +1,5 @@
 from json import load
+from pathlib import Path
 from re import sub
 from .BaseSerializer import BaseSerializer
 
@@ -12,7 +13,7 @@ class RequestSerializer(BaseSerializer):
         self.__serialize_data()
 
     def __load_file(self):
-        with open("json/shops_info.json") as f:
+        with open(Path(__file__).parent.parent / "../json/shops_info.json") as f:
             return load(f)
 
     def __serialize_data(self):

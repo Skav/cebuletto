@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from assets.CustomErrors import ShopsNotSet, ProductsNotSet
 from decimal import Decimal
 from queue import Queue, Empty
@@ -22,7 +23,7 @@ class WebScrapper:
 
     def __load_json(self, name):
         try:
-            with open('json/{}.json'.format(name)) as f:
+            with open(Path(__file__).parent / '../json/{}.json'.format(name)) as f:
                 return json.load(f)
         except Exception as e:
             raise e
@@ -104,6 +105,6 @@ class WebScrapper:
 
     @staticmethod
     def get_shops():
-        with open('../json/shops_info.json') as f:
+        with open(Path(__file__).parent / '../json/shops_info.json') as f:
             shops = json.load(f)
             return list(shops.keys())
