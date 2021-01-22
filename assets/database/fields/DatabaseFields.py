@@ -56,7 +56,7 @@ class DatetimeField(BaseField):
         self.auto_now_on_update = auto_now_on_update
         kwargs["field_type"] = datetime
 
-        if self.auto_now_on_update or self.auto_now_on_add:
+        if self.auto_now_on_update:
             kwargs['writeable'] = False
 
         super().__init__(**kwargs)

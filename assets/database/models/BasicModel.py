@@ -17,7 +17,7 @@ class BasicModel:
         self._cursor.execute(f"SHOW KEYS FROM {self.__table_name} WHERE Key_name = 'PRIMARY'")
         return self._cursor.fetchone()['Column_name']
 
-    def get_all(self, limit=1000):
+    def get_all(self, limit=100):
         query = f"SELECT * FROM {self.__table_name} LIMIT %s"
         self._cursor.execute(query, (limit,))
         return self._cursor.fetchall()

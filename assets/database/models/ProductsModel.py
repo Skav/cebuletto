@@ -1,5 +1,5 @@
-from assets.databases.models.BasicModel import BasicModel
-from assets.databases.fields.DatabaseFields import *
+from assets.database.models.BasicModel import BasicModel
+from assets.database.fields.DatabaseFields import *
 
 class ProductsModel(BasicModel):
     idProduct = IntegerField(primary=True, max_length=11, not_null=True)
@@ -21,9 +21,9 @@ class ProductsModel(BasicModel):
         self._cursor.execute(query, (shop_id, name, price, discount_price, product_url, image_url, available))
         self._db.commit()
 
-    def get_all_with_shop_name(self, limit=1000):
-        query = "SELECT products.*, shops.shopName FROM products INNER JOIN shops on products.idShop = shops.idShop" \
-                 "LIMIT = %s"
+    def get_all_with_shop_name(self, limit=100):
+        query = """SELECT products.*, shops.name FROM products INNER JOIN shops on products.idShop = shops.idShop
+                LIMIT = %s"""
         self._cursor.execute(query, (limit,))
 
     def get_row_by_shop_id(self, shop_id: int, limit=100):
@@ -32,8 +32,8 @@ class ProductsModel(BasicModel):
         return self._cursor.fetchall()
 
     def get_row_by_id_with_shop_name(self, product_id: int):
-        query = "SELECT products.*, shops.shopName FROM products INNER JOIN shops on products.idShop = shops.idShop" \
-                "WHERE idProduct = %s"
+        query = """SELECT products.*, shops.name FROM products INNER JOIN shops on products.idShop = shops.idShop
+                WHERE idProduct = %s"""
         self._cursor.execute(query, (product_id,))
         return self._cursor.fetchone()
 

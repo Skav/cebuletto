@@ -1,10 +1,10 @@
-from assets.databases.models.BasicModel import BasicModel
-from assets.databases.fields.DatabaseFields import *
+from assets.database.models.BasicModel import BasicModel
+from assets.database.fields.DatabaseFields import *
 
 
 class ShopsModel(BasicModel):
     idShop = IntegerField(primary=True, max_length=11, not_null=True)
-    shopName = VarcharField(max_length=45, not_null=True)
+    name = VarcharField(max_length=45, not_null=True)
     searchCounter = IntegerField(max_length=10, unsigned=True, default=0)
 
     def __init__(self):
@@ -16,27 +16,27 @@ class ShopsModel(BasicModel):
         self._db.commit()
 
     def get_row_by_name(self, name: str):
-        query = "SELECT * FROM shops WHERE shopName = %s"
+        query = "SELECT * FROM shops WHERE name = %s"
         self._cursor.execute(query, (name,))
         return self._cursor.fetchone()
 
     def get_counter_value_by_name(self, name: str):
-        query = "SELECT searchCounter FROM shops WHERE shopName = %s"
+        query = "SELECT searchCounter FROM shops WHERE name = %s"
         self._cursor.execute(query, (name,))
         return self._cursor.fetchone()
 
     def delete_row_by_name(self, name: str):
-        query = "DELETE FROM shops WHERE shopName = %s"
+        query = "DELETE FROM shops WHERE name = %s"
         self._cursor.execute(query, (name,))
         self._db.commit()
 
     def update_row_by_id(self, shop_id: int, name: str, search_counter: int):
-        query = "UPDATE shops SET shopName = %s, searchCounter = %s WHERE idShop = %s"
+        query = "UPDATE shops SET name = %s, searchCounter = %s WHERE idShop = %s"
         self._cursor.execute(query, (name, search_counter, shop_id))
         self._db.commit()
 
     def update_name_by_id(self, shop_id: int, name: str):
-        query = "UPDATE shops SET shopName = %s WHERE idShop = %s"
+        query = "UPDATE shops SET name = %s WHERE idShop = %s"
         self._cursor.execute(query, (name, shop_id))
         self._db.commit()
 

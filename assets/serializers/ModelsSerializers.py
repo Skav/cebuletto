@@ -1,6 +1,6 @@
-from ..databases.fields.DatabaseFields import *
-from ..databases.fields.FieldsValues import NOT_PROVIDED
-from assets.databases.models.ShopsModel import ShopsModel
+from ..database.fields.DatabaseFields import *
+from ..database.fields.FieldsValues import NOT_PROVIDED
+from assets.database.models.ShopsModel import ShopsModel
 from .BaseSerializer import BaseSerializer
 
 

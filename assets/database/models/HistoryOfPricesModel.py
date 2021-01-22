@@ -1,5 +1,5 @@
-from assets.databases.models.BasicModel import BasicModel
-from assets.databases.fields.DatabaseFields import *
+from assets.database.models.BasicModel import BasicModel
+from assets.database.fields.DatabaseFields import *
 
 class HistoryOfPricesModel(BasicModel):
     idHistoryOfPrice = IntegerField(primary=True, max_length=11, not_null=True)

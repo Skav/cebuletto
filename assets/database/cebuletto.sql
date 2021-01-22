@@ -1,11 +1,11 @@
 create table shops(
 	idShop int auto_increment primary key,
-	shopName varchar(45) not null,
+	name varchar(45) not null,
 	searchCounter int unsigned not null default 0);
 
 create table productsTags(
-    idProductTags int auto_increment primary key,
-	productTags varchar(45) not null,
+    idProductTag int auto_increment primary key,
+	tag varchar(45) not null,
 	searchCounter int unsigned not null default 1);
 
 create table products(
@@ -20,9 +20,9 @@ create table products(
 	lastUpdate timestamp not null default now() on update now());
 
 create table tagsToProducts(
-	idTagsToProduct int auto_increment primary key,
+	idTagToProduct int auto_increment primary key,
 	idProduct int not null references products(idProduct),
-    idProductTags int not null references productsTags(idProductTags),
+    idProductTag int not null references productsTags(idProductTag),
     lastUpdate timestamp not null default now() on update now());
 
 create table historyOfPrices(
