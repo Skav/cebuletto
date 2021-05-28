@@ -1,5 +1,6 @@
 from assets.database.models.BasicModel import BasicModel
-from assets.database.fields.DatabaseFields import *
+from assets.database.fields.DatabaseFields import IntegerField, VarcharField
+
 
 class ProductsTagsModel(BasicModel):
     idProductTag = IntegerField(primary=True, max_length=11, not_null=True)
@@ -19,14 +20,14 @@ class ProductsTagsModel(BasicModel):
         self._cursor.execute(query, (tag,))
         self._db.commit()
 
-    def update_row_by_id(self, id, tag, counter):
+    def update_row_by_id(self, id_product_tag: int, tag: str, counter: int):
         query = "UPDATE productsTags WHERE idProductsTags = %s SET tag = %s, searchCounter = %s"
-        self._cursor.execute(query, (id, tag, counter))
+        self._cursor.execute(query, (id_product_tag, tag, counter))
         self._db.commit()
 
-    def update_search_counter_by_id(self, id: int, value: int):
+    def update_search_counter_by_id(self, id_product_tag: int, value: int):
         query = "UPDATE productsTags WHERE idProductsTags = %s SET searchCounter = %s"
-        self._cursor.execute(query, (id, value))
+        self._cursor.execute(query, (id_product_tag, value))
         self._db.commit()
 
     def delete_row_by_tag(self, tag: str):

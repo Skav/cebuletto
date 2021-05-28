@@ -1,5 +1,5 @@
 from assets.database.models.BasicModel import BasicModel
-from assets.database.fields.DatabaseFields import *
+from assets.database.fields.DatabaseFields import IntegerField, VarcharField
 
 
 class ShopsModel(BasicModel):
@@ -30,17 +30,17 @@ class ShopsModel(BasicModel):
         self._cursor.execute(query, (name,))
         self._db.commit()
 
-    def update_row_by_id(self, shop_id: int, name: str, search_counter: int):
+    def update_row_by_id(self, id_shop: int, name: str, search_counter: int):
         query = "UPDATE shops SET name = %s, searchCounter = %s WHERE idShop = %s"
-        self._cursor.execute(query, (name, search_counter, shop_id))
+        self._cursor.execute(query, (name, search_counter, id_shop))
         self._db.commit()
 
-    def update_name_by_id(self, shop_id: int, name: str):
+    def update_name_by_id(self, id_shop: int, name: str):
         query = "UPDATE shops SET name = %s WHERE idShop = %s"
-        self._cursor.execute(query, (name, shop_id))
+        self._cursor.execute(query, (name, id_shop))
         self._db.commit()
 
-    def update_counter_by_id(self, shop_id: int, value: int):
+    def update_counter_by_id(self, id_shop: int, value: int):
         query = "UPDATE shops set searchCounter = %s WHERE idShop = %s"
-        self._cursor.execute(query, (value, shop_id))
+        self._cursor.execute(query, (value, id_shop))
         self._db.commit()
