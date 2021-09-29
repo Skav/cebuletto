@@ -1,11 +1,11 @@
 import mysql.connector
-import os
+from os import getenv
 
 class BasicModel:
 
     def __init__(self, table_name):
-        self._db = mysql.connector.connect(user=os.getenv("DB_USER"), password=os.getenv("DB_PASSWORD"),
-                                           host=os.getenv("DB_HOST"), database=os.getenv("DB_NAME"))
+        self._db = mysql.connector.connect(user=getenv("DB_USER"), password=getenv("DB_PASSWORD"),
+                                           host=getenv("DB_HOST"), database=getenv("DB_NAME"))
         self._cursor = self._db.cursor(dictionary=True)
         self.__table_name = table_name
         self.__id_table = self.__get_primary_table_name()

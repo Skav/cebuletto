@@ -5,7 +5,7 @@ from decimal import Decimal
 from queue import Queue, Empty
 from assets.DTO.ProductData import ProductData
 from assets.ScrapperThread import ScrapperThread
-
+from os import getenv
 
 
 class WebScrapper:
@@ -13,7 +13,11 @@ class WebScrapper:
         self.__products_list = data['products']
         self.__shops_list = data['shops']
         self.__reverse_sort = True if data['order'] == 'asc' else False
-        self.__config = self.__load_json("config")
+        self.__config = {
+            "max_pages": int(getenv('SCRAPPER_MAX_PAGES')),
+            "web_browser": getenv('SCRAPPER_WEB_BROWSER'),
+            "path_to_browser_driver": getenv('SCRAPPER_PATH_TO_BROWSER_DRIVER')
+        }
         self.__shops_info = self.__load_json("shops_info")
         self.__shops_structure = self.__load_json("shops_structure")
         self.__result = Queue()
