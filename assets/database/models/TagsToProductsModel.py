@@ -44,14 +44,24 @@ class TagsToProductsModel(BasicModel):
         return self._cursor.fetchall()
 
     def get_products_by_tag(self, tag: str, limit=100):
-        query = """SELECT products.name FROM tagsToProducts
-                INNER JOIN product ON tagsToProducts.idProduct = products.idProduct
+        query = """SELECT products.* FROM tagsToProducts
+                INNER JOIN products ON tagsToProducts.idProduct = products.idProduct
                 INNER JOIN productsTags ON tagsToProducts.idProductTag = productsTags.idProductTag
                 WHERE productsTags.tag = %s LIMIT %s"""
         self._cursor.execute(query, (tag, limit))
         return self._cursor.fetchall()
 
-    def add_row(self, id_product: int, id_product_tag: int):
+    def get_products_by_tag_and_shop_id(self, tag: str, shop_id: int, limit=100):
+        query = """SELECT products.* FROM tagsToProducts
+                INNER JOIN products ON tagsToProducts.idProduct = products.idProduct
+                INNER JOIN productsTags ON tagsToProducts.idProductTag = productsTags.idProductTag
+                WHERE productsTags.tag = %s AND 
+                WHERE products.idProduct = %s
+                LIMIT %s"""
+        self._cursor.execute(query, (tag, shop_id, limit))
+        return self._cursor.fetchall()
+
+    def create_row(self, id_product: int, id_product_tag: int):
         query = "INSERT INTO tagsToProducts VALUES (default, %s, %s, default)"
         self._cursor.execute(query, (id_product, id_product_tag))
         self._db.commit()

@@ -2,6 +2,7 @@ from json import load
 from pathlib import Path
 from re import sub
 from .BaseSerializer import BaseSerializer
+from assets.CustomErrors import ShopsNotSet, ProductsNotSet
 
 
 class RequestSerializer(BaseSerializer):
@@ -29,9 +30,9 @@ class RequestSerializer(BaseSerializer):
         shops = [x for x in clear_shops if x]
 
         if not products:
-            self._set_error("There is not products in products_list")
+            raise ProductsNotSet
         if not shops:
-            self._set_error("There is not shops in shops_list")
+            raise ShopsNotSet
 
         if not self.is_valid:
             return False

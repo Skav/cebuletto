@@ -1,17 +1,21 @@
 import json
 from pathlib import Path
-from assets.CustomErrors import ShopsNotSet, ProductsNotSet
+from assets.CustomErrors import SearchDataNotSet
 from decimal import Decimal
 from queue import Queue, Empty
 from assets.DTO.ProductData import ProductData
 from assets.ScrapperThread import ScrapperThread
 from os import getenv
-
+from assets.database.Interfaces.ProductsTagsInterface import ProductsTagsInterface
+from assets.database.Interfaces.TagsToProductsInterface import TagsToProductsInterface
+from assets.database.Interfaces.ShopsInterface import ShopsInterface
+from datetime import datetime
 
 class WebScrapper:
     def __init__(self, data):
-        self.__products_list = data['products']
-        self.__shops_list = data['shops']
+        self.__products = data['products']
+        self.__shops = data['shops']
+        self.__search_data = {k: data['products'][:] for k in data['shops']}
         self.__reverse_sort = True if data['order'] == 'asc' else False
         self.__config = {
             "max_pages": int(getenv('SCRAPPER_MAX_PAGES')),
@@ -45,22 +49,61 @@ class WebScrapper:
         except Exception as e:
             raise e
 
-    def __add_tasks_to_jobs(self):
-        if not self.__shops_list:
-            raise ShopsNotSet
-        if not self.__products_list:
-            raise ProductsNotSet
+    # TODO:
+    # Zmienic zasade wyszukiwania produktow: dict z sklepem i produktami ktore maja byc w nim znalezione
+    # Dokonczyc wyszukiwnaie produktow w bazie
+    # Przefiltrowanie produktow i sklepow w ktorych znaleziono dane dane, w celu unikniecia scrappowania
 
-        for product in self.__products_list:
-            for shop in self.__shops_list:
-                self.__jobs.put(ProductData(shop, product, self.__shops_structure[shop],
-                                            self.__shops_info[shop]))
+    def __get_products_from_database(self):
+        existings_tags = [x for x in self.__products if ProductsTagsInterface.check_tag_exist(x)]
+        shops_info = self.__get_shops_with_id()
+        self.__search_data = {k: [v for v in self.__products if v not in existings_tags] for k in self.__shops}
+
+        for shop in self.__shops:
+            for tag in existings_tags:
+                products_data = TagsToProductsInterface.get_products_by_tag_and_shop_id(shops_info[shop], tag)
+                products_list = {}
+                for product in products_data:
+                    if self.__check_hours_since_update(product['lastUpdate'] > getenv("SCRAPPER_TIME_INTERVAL_BETWEEN_SEARCH")):
+                        if shop in self.__search_data.keys():
+                            self.__search_data[shop].append(product)
+                        else:
+                            self.__search_data[shop] = [product]
+                        break
+
+                    products_list[tag][shop] = {'price': product["price"], 'discount_price': product["discountPrice"],
+                                                'link': product[''], 'image_url': product, 'available': product}
+
+
+
+
+
+    def __get_products_by_name_and_shop_id(self, product, shop_id):
+        return TagsToProductsInterface.get_products_by_tag_and_shop_id(product, shop_id)
+
+    def __get_shops_with_id(self):
+        shops = ShopsInterface.get_all_shops()
+        return {x["name"]: x["idShop"] for x in shops}
+
+    def __check_hours_since_update(self, update_time: datetime):
+        duration = datetime.now() - update_time
+
+        return divmod(duration, 3600)[0]
+
+    def __add_tasks_to_jobs(self):
+        if not self.__search_data:
+            raise SearchDataNotSet
+
+        for shop, products in self.__search_data.items():
+            for product in products:
+                self.__jobs.put(ProductData(shop, product, self.__shops_structure[shop], self.__shops_info[shop]))
 
     def __init_threads(self):
         for i in range(self.__config["max_pages"]):
             if not self.__jobs.qsize() > 0:
                 break
-            self.__threads.append(ScrapperThread(self.__errors, self.__jobs, self.__result, self.__config, self.__shops_info))
+            self.__threads.append(
+                ScrapperThread(self.__errors, self.__jobs, self.__result, self.__config, self.__shops_info))
             self.__threads[i].start()
 
     def __wait_for_threads(self):

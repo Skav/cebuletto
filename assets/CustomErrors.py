@@ -13,6 +13,11 @@ class ProductsNotSet(Exception):
         super().__init__("Products are not set")
 
 
+class SearchDataNotSet(Exception):
+    def __init__(self):
+        super().__init__("Search data are not set")
+
+
 class SerializerError(Exception):
     def __init__(self, message):
         super().__init__(message)

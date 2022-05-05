@@ -16,7 +16,8 @@ class ProductsModel(BasicModel):
     def __init__(self):
         super().__init__('products')
 
-    def create_row(self, id_shop: int, name: str, price: str, discount_price: str, product_url: str, image_url: str, available: bool):
+    def create_row(self, id_shop: int, name: str, price: str, discount_price: str, product_url: str, image_url: str,
+                   available: bool):
         query = "INSERT INTO products VALUES (default, %s, %s, %s, %s, %s, %s, %s, default)"
         self._cursor.execute(query, (id_shop, name, price, discount_price, product_url, image_url, available))
         self._db.commit()
@@ -49,4 +50,16 @@ class ProductsModel(BasicModel):
     def update_product_availability_by_name(self, product_name: bool, is_available: bool):
         query = "UPDATE products SET available=%s WHERE name = %s"
         self._cursor.execute(query, (is_available, product_name))
+        self._db.commit()
+
+    def update_product_data_by_name(self, name: str, price: int, discount_price: int, product_url: str, image_url: str,
+                                    available: bool):
+        query = "UPDATE products SET price = %s, discountPrice = %s, productUrl = %s, imageUrl = %s, available=%s WHERE name = %s"
+        self._cursor.execute(query, (price, discount_price, product_url, image_url, available, name))
+        self._db.commit()
+
+    def update_product_data_by_id(self, product_id: int, name: str, price: int, discount_price: int, product_url: str,
+                                  image_url: str, available: bool):
+        query = "UPDATE products SET name= %s price = %s, discountPrice = %s, productUrl = %s, imageUrl = %s, available=%s WHERE productId = %s"
+        self._cursor.execute(query, (name, price, discount_price, product_url, image_url, available, product_id))
         self._db.commit()

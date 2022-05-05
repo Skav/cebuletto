@@ -5,7 +5,7 @@ from flask_cors import CORS
 from flask.json import jsonify
 from assets.WebScrapper import WebScrapper
 from assets.serializers.RequestSerializer import RequestSerializer
-from assets.CustomErrors import WebDriverNotFound, ShopsNotSet, ProductsNotSet
+from assets.CustomErrors import WebDriverNotFound, ShopsNotSet, ProductsNotSet, SearchDataNotSet
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -53,6 +53,9 @@ def get_products():
     except WebDriverNotFound as e:
         logger.error(e)
         return make_response(jsonify({"Error": "Server configuration error"}), 500)
+    except SearchDataNotSet as e:
+        logger.exception(e)
+        return make_response(jsonify({"Error": "Data for product search not set"}), 400)
     except ShopsNotSet as e:
         logger.exception(e)
         return make_response(jsonify({"Error": "Shops are not set"}), 400)
