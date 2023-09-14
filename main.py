@@ -1,20 +1,41 @@
-from datetime import datetime
-from assets.WebScrapper import WebScrapper
+from assets.database.models.TagsToProductsModel import *
+from assets.database.models.ProductsModel import ProductsModel
+from assets.database.models.ProductsTagsModel import ProductsTagsModel
+from assets.database.Interfaces.TagsToProductsInterface import TagsToProductsInterface
+from assets.CustomErrors import SerializerError
+from dotenv import load_dotenv
+from assets.database.Interfaces.ShopsInterface import ShopsInterface
+from assets.database.Interfaces.ProductsInterface import ProductsInterface
+from assets.database.Interfaces.ProductsTagsInterface import ProductsTagsInterface
+from decimal import Decimal
+from assets.serializers.ModelsSerializers import ModelSerializer
+
+load_dotenv()
+
 
 def main():
-    print("Produkty oddzielaj ';' jezeli jest ich wiecej niz 1")
-    product_name = input("Podaj interesujacy cie produkt(y): ")
-    product_name = product_name.split(';')
+    # print()
+    # data = {
+    #     "name": "Adbl Vampire Light",
+    #     "shopName": "mrcleaner",
+    #     "price": Decimal(20.00),
+    #     "discountPrice": Decimal(39.00),
+    #     "productUrl": "sklep.pl/url",
+    #     "imageUrl": "sklep.pl/zdj",
+    #     "available": 1,
+    # }
+    # product_model = ProductsModel()
+    # product_interface = ProductsInterface()
+    # shop_interface = ShopsInterface()
+    # serializer = ModelSerializer(product_model, data)
+    #
+    # print(serializer.is_valid)
+    # print(serializer.errors)
 
-    start = datetime.now()
-    scrapper = WebScrapper(product_name)
-    shop_list = scrapper.get_shops_list()
-    products_list = scrapper.find_products(shop_list)
-    # with open('data.json', ) as f:
-    #     file = json.load(f)
-    results = scrapper.__sort_products_by_price(products_list)
-    print('execution time: ', datetime.now()-start)
+    shops = ["shop1", "shop2", "shop3", "shop4"]
+    products = [1,2,3,4,5]
+    products2 = [2,1]
 
-    print(results)
+    print({k: [v for v in products if v not in products2] for k in shops})
 
 main()
